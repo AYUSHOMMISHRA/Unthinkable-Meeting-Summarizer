@@ -1,0 +1,725 @@
+{% extends 'base.html' %}
+
+{% block title %}Processing Meeting - Meeting Summarizer{% endblock %}
+
+{% block content %}
+<style>
+    /* Processing Page Styles */
+    .processing-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 0;
+    }
+
+    .processing-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 4rem 3rem;
+        max-width: 700px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 10px 40px var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .processing-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    /* AI Brain Animation */
+    .ai-brain-container {
+        margin-bottom: 2rem;
+    }
+
+    .ai-brain {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 2rem;
+        position: relative;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .brain-icon {
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .brain-icon i {
+        font-size: 5rem;
+        color: white;
+        animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-icon {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .brain-icon::before,
+    .brain-icon::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        opacity: 0.3;
+        animation: ripple 2s ease-out infinite;
+    }
+
+    .brain-icon::after {
+        animation-delay: 1s;
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(1);
+            opacity: 0.3;
+        }
+        100% {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    /* Processing Title */
+    .processing-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .processing-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 3rem;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+        margin: 3rem 0;
+        text-align: left;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .step.active {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .step.completed {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .step.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        animation: slideProgress 1.5s infinite;
+    }
+
+    @keyframes slideProgress {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1.5rem;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+    }
+
+    .step.active .step-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        animation: rotate 2s linear infinite;
+    }
+
+    .step.completed .step-icon {
+        background: #10b981;
+        color: white;
+        border-color: transparent;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .step-content h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .step-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .step.active .step-content h4 {
+        color: #667eea;
+    }
+
+    .step.completed .step-content h4 {
+        color: #10b981;
+    }
+
+    /* Overall Progress Bar */
+    .overall-progress {
+        margin-top: 3rem;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .progress-percentage {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.1rem;
+    }
+
+    .progress {
+        height: 12px;
+        border-radius: 50px;
+        background: var(--bg-tertiary);
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar-animated {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50px;
+        height: 100%;
+        transition: width 0.5s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar-animated::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: progressShine 1.5s infinite;
+    }
+
+    @keyframes progressShine {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    /* Estimated Time */
+    .estimated-time {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .estimated-time i {
+        font-size: 1.5rem;
+        color: #667eea;
+    }
+
+    .estimated-time span {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+    }
+
+    .time-remaining {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    /* Fun Facts Section */
+    .fun-fact {
+        margin-top: 3rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-radius: 16px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .fun-fact-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .fun-fact-title i {
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .fun-fact-text {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        line-height: 1.6;
+    }
+
+    /* Loading Dots */
+    .loading-dots {
+        display: inline-flex;
+        gap: 0.3rem;
+    }
+
+    .loading-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #667eea;
+        animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .loading-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes dotPulse {
+        0%, 60%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+        30% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Cancel Button */
+    .cancel-button {
+        margin-top: 2rem;
+        padding: 0.75rem 2rem;
+        background: transparent;
+        border: 2px solid var(--border-color);
+        border-radius: 50px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .cancel-button:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .processing-card {
+            padding: 3rem 2rem;
+        }
+
+        .processing-title {
+            font-size: 2rem;
+        }
+
+        .ai-brain {
+            width: 120px;
+            height: 120px;
+        }
+
+        .brain-icon {
+            width: 120px;
+            height: 120px;
+        }
+
+        .brain-icon i {
+            font-size: 4rem;
+        }
+
+        .step {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .step-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
+<div class="processing-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="processing-card">
+                    <!-- AI Brain Animation -->
+                    <div class="ai-brain-container">
+                        <div class="ai-brain">
+                            <div class="brain-icon">
+                                <i class="bi bi-stars"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Title -->
+                    <h1 class="processing-title">Processing Your Meeting</h1>
+                    <p class="processing-subtitle">
+                        Our AI is analyzing your audio
+                        <span class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </p>
+
+                    <!-- Progress Steps -->
+                    <div class="progress-steps">
+                        <div class="step completed" id="step-upload">
+                            <div class="step-icon">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <div class="step-content">
+                                <h4>Upload Complete</h4>
+                                <p>Your audio file has been successfully uploaded</p>
+                            </div>
+                        </div>
+
+                        <div class="step active" id="step-transcribe">
+                            <div class="step-icon">
+                                <i class="bi bi-soundwave"></i>
+                            </div>
+                            <div class="step-content">
+                                <h4>Transcribing Audio</h4>
+                                <p>Converting speech to text using OpenAI Whisper</p>
+                            </div>
+                        </div>
+
+                        <div class="step" id="step-summarize">
+                            <div class="step-icon">
+                                <i class="bi bi-file-text"></i>
+                            </div>
+                            <div class="step-content">
+                                <h4>Generating Summary</h4>
+                                <p>Creating intelligent summary with key insights</p>
+                            </div>
+                        </div>
+
+                        <div class="step" id="step-extract">
+                            <div class="step-icon">
+                                <i class="bi bi-list-check"></i>
+                            </div>
+                            <div class="step-content">
+                                <h4>Extracting Action Items</h4>
+                                <p>Identifying tasks, decisions, and follow-ups</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Progress Bar -->
+                    <div class="overall-progress">
+                        <div class="progress-label">
+                            <span>Overall Progress</span>
+                            <span class="progress-percentage" id="progressPercentage">25%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar-animated" id="progressBar" style="width: 25%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Time -->
+                    <div class="estimated-time">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Estimated time remaining: <span class="time-remaining" id="timeRemaining">2-3 minutes</span></span>
+                    </div>
+
+                    <!-- Fun Fact -->
+                    <div class="fun-fact">
+                        <div class="fun-fact-title">
+                            <i class="bi bi-lightbulb"></i>
+                            <span>Did You Know?</span>
+                        </div>
+                        <p class="fun-fact-text" id="funFactText">
+                            The average person speaks at a rate of 125-150 words per minute, 
+                            but AI can transcribe at over 10,000 words per minute with high accuracy!
+                        </p>
+                    </div>
+
+                    <!-- Cancel Button -->
+                    <button class="cancel-button" onclick="confirmCancel()">
+                        <i class="bi bi-x-circle me-2"></i>Cancel Processing
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get meeting ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const meetingId = urlParams.get('id') || '{{ meeting_id }}';
+
+    // Fun facts array
+    const funFacts = [
+        "The average person speaks at a rate of 125-150 words per minute, but AI can transcribe at over 10,000 words per minute with high accuracy!",
+        "OpenAI's Whisper model was trained on 680,000 hours of multilingual and multitask supervised data!",
+        "Studies show that taking notes during meetings can improve retention by up to 34%!",
+        "The first speech recognition system was created in 1952 and could only recognize digits!",
+        "AI-powered summarization can reduce a 1-hour meeting to a 2-minute read while retaining all key points!",
+        "Research shows that 71% of meetings are considered unproductive by employees. Let's change that!",
+        "The human brain processes audio 60,000 times faster than text, but AI can do both simultaneously!",
+        "Action items from meetings are 3x more likely to be completed when they're written down and assigned!"
+    ];
+
+    let currentFactIndex = 0;
+
+    // Rotate fun facts every 10 seconds
+    setInterval(() => {
+        currentFactIndex = (currentFactIndex + 1) % funFacts.length;
+        document.getElementById('funFactText').textContent = funFacts[currentFactIndex];
+    }, 10000);
+
+    // Processing steps configuration
+    const steps = [
+        { id: 'step-upload', duration: 0, label: 'Upload Complete' },
+        { id: 'step-transcribe', duration: 60, label: 'Transcribing Audio' },
+        { id: 'step-summarize', duration: 30, label: 'Generating Summary' },
+        { id: 'step-extract', duration: 20, label: 'Extracting Action Items' }
+    ];
+
+    let currentStepIndex = 1;
+    let overallProgress = 25;
+    let elapsedTime = 0;
+
+    // Update progress function
+    function updateProgress() {
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        
+        // Simulate progress
+        if (overallProgress < 100) {
+            overallProgress += Math.random() * 2;
+            if (overallProgress > 100) overallProgress = 100;
+            
+            progressBar.style.width = overallProgress + '%';
+            progressPercentage.textContent = Math.round(overallProgress) + '%';
+
+            // Update steps
+            if (overallProgress >= 25 && overallProgress < 50 && currentStepIndex === 1) {
+                // Transcribing
+            } else if (overallProgress >= 50 && overallProgress < 75 && currentStepIndex === 1) {
+                // Move to summarizing
+                completeStep('step-transcribe');
+                activateStep('step-summarize');
+                currentStepIndex = 2;
+            } else if (overallProgress >= 75 && overallProgress < 100 && currentStepIndex === 2) {
+                // Move to extracting
+                completeStep('step-summarize');
+                activateStep('step-extract');
+                currentStepIndex = 3;
+            } else if (overallProgress >= 100) {
+                completeStep('step-extract');
+                // Redirect to results page
+                setTimeout(() => {
+                    window.location.href = `/meeting/${meetingId}/?fromProcessing=true`;
+                }, 1000);
+            }
+
+            // Update estimated time
+            updateEstimatedTime();
+        }
+    }
+
+    // Complete step function
+    function completeStep(stepId) {
+        const step = document.getElementById(stepId);
+        step.classList.remove('active');
+        step.classList.add('completed');
+        step.querySelector('.step-icon i').className = 'bi bi-check-lg';
+    }
+
+    // Activate step function
+    function activateStep(stepId) {
+        const step = document.getElementById(stepId);
+        step.classList.add('active');
+    }
+
+    // Update estimated time
+    function updateEstimatedTime() {
+        const timeRemaining = document.getElementById('timeRemaining');
+        const remainingProgress = 100 - overallProgress;
+        const estimatedSeconds = Math.ceil(remainingProgress * 0.15); // Reduced from 1.5 to 0.15 for faster estimates
+        
+        if (estimatedSeconds < 60) {
+            timeRemaining.textContent = `${estimatedSeconds} seconds`;
+        } else {
+            const minutes = Math.ceil(estimatedSeconds / 60);
+            timeRemaining.textContent = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+        }
+    }
+
+    // Poll server for actual progress (if API endpoint exists)
+    async function pollProgress() {
+        try {
+            const response = await fetch(`/api/status/${meetingId}/`);
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update based on server response
+                if (data.status === 'transcribing') {
+                    overallProgress = data.progress || 25;
+                } else if (data.status === 'summarizing') {
+                    completeStep('step-transcribe');
+                    activateStep('step-summarize');
+                    overallProgress = 50 + (data.progress || 0) * 0.25;
+                    currentStepIndex = 2;
+                } else if (data.status === 'extracting') {
+                    completeStep('step-summarize');
+                    activateStep('step-extract');
+                    overallProgress = 75 + (data.progress || 0) * 0.25;
+                    currentStepIndex = 3;
+                } else if (data.status === 'completed') {
+                    overallProgress = 100;
+                    completeStep('step-extract');
+                    // Show completion message
+                    document.getElementById('progressPercentage').textContent = '100%';
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('timeRemaining').textContent = 'Complete!';
+                    
+                    // Redirect to meeting detail page after a short delay
+                    setTimeout(() => {
+                        window.location.href = `/meeting/${meetingId}/?fromProcessing=true`;
+                    }, 1500);
+                }
+
+                document.getElementById('progressBar').style.width = overallProgress + '%';
+                document.getElementById('progressPercentage').textContent = Math.round(overallProgress) + '%';
+                updateEstimatedTime();
+            }
+        } catch (error) {
+            console.error('Error polling progress:', error);
+            // Fall back to simulated progress
+            updateProgress();
+        }
+    }
+
+    // Start progress updates
+    setInterval(() => {
+        if (meetingId && meetingId !== '') {
+            pollProgress();
+        } else {
+            updateProgress();
+        }
+    }, 2000);
+
+    // Confirm cancel function
+    function confirmCancel() {
+        if (confirm('Are you sure you want to cancel processing? This action cannot be undone.')) {
+            fetch(`/api/meeting/${meetingId}/cancel`, {
+                method: 'POST'
+            })
+            .then(() => {
+                window.location.href = '/';
+            })
+            .catch(error => {
+                console.error('Error canceling:', error);
+                window.location.href = '/';
+            });
+        }
+    }
+
+    // Prevent page refresh during processing
+    window.addEventListener('beforeunload', (e) => {
+        if (overallProgress < 100) {
+            e.preventDefault();
+            e.returnValue = 'Processing is still in progress. Are you sure you want to leave?';
+        }
+    });
+</script>
+{% endblock %}
