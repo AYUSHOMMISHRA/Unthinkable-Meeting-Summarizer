@@ -1,0 +1,6 @@
+# Ignore media directory for user uploads
+media/
+logs/
+__pycache__/
+.DS_Store
+*.bak
