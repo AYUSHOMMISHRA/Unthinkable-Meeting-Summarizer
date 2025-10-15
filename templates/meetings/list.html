@@ -1,0 +1,1214 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load meeting_filters %}
+{% block content %}
+
+<style>
+    .meetings-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Header Section */
+    .meetings-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .meetings-header h1 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .meetings-header p {
+        color: #64748b;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    [data-theme="dark"] .meetings-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    [data-theme="dark"] .meetings-header p {
+        color: #94a3b8;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] .controls-bar {
+        background: rgba(45, 45, 45, 0.8);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    [data-theme="dark"] .search-box input {
+        background: #2d2d2d;
+        border-color: #3d3d3d;
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .search-box input:focus {
+        border-color: #667eea;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn, .view-btn {
+        padding: 0.75rem 1.25rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-btn:hover, .view-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .filter-btn.active, .view-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+    }
+
+    [data-theme="dark"] .filter-btn,
+    [data-theme="dark"] .view-btn {
+        background: #2d2d2d;
+        border-color: #3d3d3d;
+        color: #e2e8f0;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
+    .sort-dropdown {
+        position: relative;
+    }
+
+    .sort-dropdown select {
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        transition: all 0.3s ease;
+    }
+
+    .sort-dropdown select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    [data-theme="dark"] .sort-dropdown select {
+        background-color: #2d2d2d;
+        border-color: #3d3d3d;
+        color: #e2e8f0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    [data-theme="dark"] .stat-card {
+        background: rgba(45, 45, 45, 0.8);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-card .icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card .value {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card .label {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    [data-theme="dark"] .stat-card .value {
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .stat-card .label {
+        color: #94a3b8;
+    }
+
+    /* Grid View */
+    .meetings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .meetings-grid.hidden {
+        display: none;
+    }
+
+    .meeting-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .meeting-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .meeting-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .meeting-card:hover::before {
+        opacity: 1;
+    }
+
+    [data-theme="dark"] .meeting-card {
+        background: rgba(45, 45, 45, 0.8);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .meeting-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+        gap: 1rem;
+    }
+    
+    .star-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .star-btn:hover {
+        color: #fbbf24;
+        transform: scale(1.2);
+    }
+    
+    .star-btn.starred {
+        color: #fbbf24;
+    }
+    
+    .star-btn.starred:hover {
+        color: #f59e0b;
+    }
+
+    .meeting-card h3 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    [data-theme="dark"] .meeting-card h3 {
+        color: #e2e8f0;
+    }
+
+    .meeting-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    [data-theme="dark"] .meeting-date {
+        color: #94a3b8;
+    }
+
+    .meeting-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    [data-theme="dark"] .meeting-meta {
+        border-color: #3d3d3d;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .meta-item i {
+        color: #667eea;
+    }
+
+    [data-theme="dark"] .meta-item {
+        color: #94a3b8;
+    }
+
+    .meeting-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        padding: 0.25rem 0.75rem;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    [data-theme="dark"] .tag {
+        background: rgba(102, 126, 234, 0.2);
+        color: #a5b4fc;
+    }
+
+    .meeting-stats {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+    }
+
+    .stat-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #10b981;
+    }
+
+    .stat-badge.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    /* List View */
+    .meetings-list {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        overflow: hidden;
+        display: none;
+    }
+
+    .meetings-list.active {
+        display: block;
+    }
+
+    [data-theme="dark"] .meetings-list {
+        background: rgba(45, 45, 45, 0.8);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .list-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: rgba(102, 126, 234, 0.05);
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    [data-theme="dark"] .list-header {
+        background: rgba(102, 126, 234, 0.1);
+        color: #94a3b8;
+    }
+
+    .list-item {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        align-items: center;
+    }
+
+    .list-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    [data-theme="dark"] .list-item {
+        border-color: #3d3d3d;
+    }
+
+    [data-theme="dark"] .list-item:hover {
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .list-item-title {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .list-item-subtitle {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    [data-theme="dark"] .list-item-title {
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .list-item-subtitle {
+        color: #94a3b8;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-badge.completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .status-badge.processing {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-badge.failed {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .status-badge i {
+        width: 6px;
+        height: 6px;
+        background: currentColor;
+        border-radius: 50%;
+        display: block;
+    }
+
+    /* Action Menu */
+    .action-menu {
+        position: relative;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #64748b;
+    }
+
+    .action-btn:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .page-btn {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    .page-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .page-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    [data-theme="dark"] .page-btn {
+        background: #2d2d2d;
+        border-color: #3d3d3d;
+        color: #94a3b8;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        display: none;
+    }
+
+    .empty-state.active {
+        display: block;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.5rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state .btn {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .empty-state .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .list-header,
+        .list-item {
+            grid-template-columns: 2fr 1fr 1fr 80px;
+        }
+
+        .list-header .duration-col,
+        .list-item .duration-col {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .meetings-header h1 {
+            font-size: 2rem;
+        }
+
+        .controls-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+
+        .view-toggle {
+            margin-left: 0;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .meetings-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .meetings-list {
+            border-radius: 12px;
+        }
+
+        .list-header {
+            display: none;
+        }
+
+        .list-item {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .list-item > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item-title {
+            grid-column: 1;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .meetings-container {
+            padding: 1rem 0.5rem;
+        }
+
+        .meetings-header {
+            padding: 2rem 1rem;
+            border-radius: 12px;
+        }
+
+        .meetings-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .meetings-header p {
+            font-size: 0.95rem;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+
+        .filter-btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+{% csrf_token %}
+
+<div class="meetings-container">
+    <!-- Header -->
+    <div class="meetings-header fade-in">
+        <h1>My Meetings</h1>
+        <p>Browse, search, and manage all your meeting transcriptions</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row fade-in">
+        <div class="stat-card" style="animation-delay: 0.1s">
+            <div class="icon">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="value">{{ total_count }}</div>
+            <div class="label">Total Meetings</div>
+        </div>
+        <div class="stat-card" style="animation-delay: 0.2s">
+            <div class="icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="value">{{ total_duration_hours|floatformat:1 }}h</div>
+            <div class="label">Total Duration</div>
+        </div>
+        <div class="stat-card" style="animation-delay: 0.3s">
+            <div class="icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="value">{{ total_participants }}</div>
+            <div class="label">Participants</div>
+        </div>
+        <div class="stat-card" style="animation-delay: 0.4s">
+            <div class="icon">
+                <i class="bi bi-list-check"></i>
+            </div>
+            <div class="value">{{ total_action_items }}</div>
+            <div class="label">Action Items</div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar fade-in" style="animation-delay: 0.5s">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search meetings by title, participants, or keywords..." value="{{ search_query }}">
+        </div>
+
+        <div class="filter-group">
+            <button class="filter-btn {% if filter_type == 'all' or not filter_type %}active{% endif %}" data-filter="all">
+                <i class="bi bi-grid"></i>
+                All
+            </button>
+            <button class="filter-btn {% if filter_type == 'recent' %}active{% endif %}" data-filter="recent">
+                <i class="bi bi-clock"></i>
+                Recent
+            </button>
+            <button class="filter-btn {% if filter_type == 'starred' %}active{% endif %}" data-filter="starred">
+                <i class="bi bi-star"></i>
+                Starred
+            </button>
+        </div>
+
+        <div class="sort-dropdown">
+            <select id="sortSelect">
+                <option value="date-desc" {% if sort_by == 'date-desc' %}selected{% endif %}>Newest First</option>
+                <option value="date-asc" {% if sort_by == 'date-asc' %}selected{% endif %}>Oldest First</option>
+                <option value="title-asc" {% if sort_by == 'title-asc' %}selected{% endif %}>Title (A-Z)</option>
+                <option value="title-desc" {% if sort_by == 'title-desc' %}selected{% endif %}>Title (Z-A)</option>
+                <option value="duration-desc" {% if sort_by == 'duration-desc' %}selected{% endif %}>Longest First</option>
+                <option value="duration-asc" {% if sort_by == 'duration-asc' %}selected{% endif %}>Shortest First</option>
+            </select>
+        </div>
+
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="grid">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <button class="view-btn" data-view="list">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Grid View -->
+    <div class="meetings-grid" id="gridView">
+        {% for meeting in meetings %}
+        {% url 'meetings:detail' meeting.id as meeting_url %}
+        <div class="meeting-card fade-in" data-meeting-id="{{ meeting.id }}" style="animation-delay: 0.{{ forloop.counter }}s">
+            <div class="meeting-card-header">
+                <div onclick="window.location.href='{{ meeting_url }}'" style="cursor: pointer; flex: 1;">
+                    <h3>{{ meeting.title }}</h3>
+                    <div class="meeting-date">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ meeting.created_at|date:"F d, Y" }}</span>
+                    </div>
+                </div>
+                <button class="star-btn {% if meeting.is_starred %}starred{% endif %}" 
+                        data-meeting-id="{{ meeting.id }}"
+                        onclick="event.stopPropagation(); toggleStar({{ meeting.id }}, this);"
+                        title="{% if meeting.is_starred %}Remove from favorites{% else %}Add to favorites{% endif %}">
+                    <i class="bi bi-star{% if meeting.is_starred %}-fill{% endif %}"></i>
+                </button>
+            </div>
+            <div class="meeting-meta" onclick="window.location.href='{{ meeting_url }}'" style="cursor: pointer;">
+                <div class="meta-item">
+                    <i class="bi bi-clock"></i>
+                    <span>{{ meeting.duration|format_duration }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-people"></i>
+                    {% if meeting.summary and meeting.summary.participants %}
+                    <span>{{ meeting.summary.participants|length }} participant{{ meeting.summary.participants|length|pluralize }}</span>
+                    {% else %}
+                    <span>0 participants</span>
+                    {% endif %}
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-chat-left-text"></i>
+                    {% if meeting.transcripts.first %}
+                    <span>{{ meeting.transcripts.first.word_count|default:'0'|intcomma }} words</span>
+                    {% else %}
+                    <span>0 words</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if meeting.summary and meeting.summary.discussion_topics %}
+            <div class="meeting-tags">
+                {% for topic in meeting.summary.discussion_topics|slice:":3" %}
+                <span class="tag">{{ topic }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if meeting.action_items.count > 0 %}
+            <div class="meeting-stats">
+                <div class="stat-badge">
+                    <i class="bi bi-list-check"></i>
+                    <span>{{ meeting.action_items.count }} action item{{ meeting.action_items.count|pluralize }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="meeting-card">
+            <p>No meetings found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- List View -->
+    <div class="meetings-list" id="listView">
+        <div class="list-header">
+            <div>Meeting Title</div>
+            <div>Date</div>
+            <div class="duration-col">Duration</div>
+            <div>Status</div>
+            <div>Actions</div>
+        </div>
+        {% for meeting in meetings %}
+    {% url 'meetings:detail' meeting.id as meeting_url %}
+    <div class="list-item" onclick="window.location.href='{{ meeting_url }}'">
+            <div>
+                <div class="list-item-title">{{ meeting.title }}</div>
+                <div class="list-item-subtitle">
+                    {% if meeting.summary and meeting.summary.participants %}
+                    {{ meeting.summary.participants|length }} participant{{ meeting.summary.participants|length|pluralize }}
+                    {% else %}
+                    0 participants
+                    {% endif %}
+                    •
+                    {% if meeting.transcripts.first %}
+                    {{ meeting.transcripts.first.word_count|default:'0'|intcomma }} words
+                    {% else %}
+                    0 words
+                    {% endif %}
+                </div>
+            </div>
+            <div>{{ meeting.created_at|date:"M d, Y" }}</div>
+            <div class="duration-col">{{ meeting.duration|format_duration }}</div>
+            <div>
+                {% if meeting.status == 'processing' %}
+                <span class="status-badge processing">
+                    <i></i>
+                    Processing
+                </span>
+                {% else %}
+                <span class="status-badge completed">
+                    <i></i>
+                    Completed
+                </span>
+                {% endif %}
+            </div>
+            <div>
+                <button class="action-btn" onclick="event.stopPropagation()">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="list-item">
+            <div colspan="5" style="text-align:center; width:100%">No meetings found.</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State (hidden by default) -->
+    <div class="empty-state" id="emptyState">
+        <i class="bi bi-inbox"></i>
+        <h3>No meetings found</h3>
+        <p>Try adjusting your search or filters</p>
+        <button class="btn" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Results Counter -->
+    {% if total_count > 0 %}
+    <div style="text-align: center; margin: 2rem 0 1rem; color: #64748b; font-size: 0.95rem;">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_count }} meeting{{ total_count|pluralize }}
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination fade-in" style="animation-delay: 1.2s">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-btn">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% else %}
+        <button class="page-btn" disabled>
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <button class="page-btn active">{{ num }}</button>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-btn">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        {% else %}
+        <button class="page-btn" disabled>
+            <i class="bi bi-chevron-right"></i>
+        </button>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // View Toggle
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const gridView = document.getElementById('gridView');
+    const listView = document.getElementById('listView');
+
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            viewBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const view = btn.dataset.view;
+            if (view === 'grid') {
+                gridView.classList.remove('hidden');
+                listView.classList.remove('active');
+            } else {
+                gridView.classList.add('hidden');
+                listView.classList.add('active');
+            }
+        });
+    });
+
+    // Filter Buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filter = btn.dataset.filter;
+            // Redirect to server with filter parameter
+            updateURL({ filter: filter, page: 1 });
+        });
+    });
+    
+    // Star Toggle Function (Global)
+    window.toggleStar = function(meetingId, button) {
+        console.log('Toggle star clicked for meeting:', meetingId);
+        
+        const icon = button.querySelector('i');
+        const wasStarred = button.classList.contains('starred');
+        
+        // Get CSRF token from cookie or meta tag
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrfToken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrfToken ? 'Found' : 'Not found');
+        
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            alert('Error: Security token not found. Please refresh the page.');
+            return;
+        }
+        
+        // Send AJAX request
+        fetch(`/toggle-star/${meetingId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                // Toggle visual state
+                if (data.is_starred) {
+                    button.classList.add('starred');
+                    icon.classList.remove('bi-star');
+                    icon.classList.add('bi-star-fill');
+                    button.title = 'Remove from favorites';
+                } else {
+                    button.classList.remove('starred');
+                    icon.classList.remove('bi-star-fill');
+                    icon.classList.add('bi-star');
+                    button.title = 'Add to favorites';
+                }
+                
+                // If currently viewing "Starred" filter and unstarring, hide the card
+                const currentFilter = new URLSearchParams(window.location.search).get('filter');
+                if (currentFilter === 'starred' && !data.is_starred) {
+                    button.closest('.meeting-card').style.display = 'none';
+                }
+            } else {
+                console.error('Error toggling star:', data.error);
+                alert('Error: ' + (data.error || 'Failed to toggle star'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error: Failed to connect to server. Please try again.');
+        });
+    };
+
+    // Search Functionality
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+        // Debounce search - wait 500ms after user stops typing
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const searchTerm = e.target.value;
+            updateURL({ search: searchTerm, page: 1 });
+        }, 500);
+    });
+
+    // Sort Functionality
+    const sortSelect = document.getElementById('sortSelect');
+    sortSelect.addEventListener('change', (e) => {
+        const sortValue = e.target.value;
+        updateURL({ sort: sortValue, page: 1 });
+    });
+
+    // Helper function to update URL with new parameters
+    function updateURL(params) {
+        const url = new URL(window.location.href);
+        
+        // Update or add parameters
+        for (const [key, value] of Object.entries(params)) {
+            if (value) {
+                url.searchParams.set(key, value);
+            } else {
+                url.searchParams.delete(key);
+            }
+        }
+        
+        // Reload page with new URL
+        window.location.href = url.toString();
+    }
+
+    // Clear Filters
+    function clearFilters() {
+        updateURL({ search: '', filter: 'all', page: 1 });
+    }
+
+    // Smooth scroll on pagination
+    document.querySelectorAll('.pagination a').forEach(link => {
+        link.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+
+    // Observe all meeting cards
+    document.querySelectorAll('.meeting-card, .stat-card').forEach(card => {
+        observer.observe(card);
+    });
+</script>
+
+{% endblock %}
