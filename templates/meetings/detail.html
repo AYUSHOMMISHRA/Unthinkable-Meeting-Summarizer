@@ -762,13 +762,14 @@
     .action-items-table {
         background: var(--bg-secondary);
         border-radius: 16px;
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
         border: 1px solid var(--border-color);
     }
 
     .table-header {
         display: grid;
-        grid-template-columns: 50px 100px 2fr 150px 150px 120px 80px;
+        grid-template-columns: 50px 100px minmax(200px, 3fr) 150px 150px 130px 100px;
         gap: 1rem;
         padding: 1.25rem 1.5rem;
         background: var(--bg-tertiary);
@@ -778,17 +779,26 @@
         color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        min-width: 1000px;
+        align-items: center;
+    }
+
+    .table-header > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .action-item-row {
         display: grid;
-        grid-template-columns: 50px 100px 2fr 150px 150px 120px 80px;
+        grid-template-columns: 50px 100px minmax(200px, 3fr) 150px 150px 130px 100px;
         gap: 1rem;
         padding: 1.5rem;
         border-bottom: 1px solid var(--border-color);
-        align-items: center;
+        align-items: start;
         background: var(--bg-primary);
         transition: all 0.3s ease;
+        min-width: 1000px;
     }
 
     .action-item-row:hover {
@@ -802,6 +812,25 @@
 
     .action-item-row.completed .task-text {
         text-decoration: line-through;
+    }
+
+    /* Custom Scrollbar for Action Items Table */
+    .action-items-table::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .action-items-table::-webkit-scrollbar-track {
+        background: var(--bg-tertiary);
+        border-radius: 10px;
+    }
+
+    .action-items-table::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+
+    .action-items-table::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     }
 
     /* Custom Checkbox */
@@ -873,6 +902,10 @@
         font-weight: 600;
         color: var(--text-primary);
         line-height: 1.5;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
     }
 
     /* Assignee */
@@ -880,11 +913,13 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        overflow: hidden;
     }
 
     .assignee-avatar {
         width: 32px;
         height: 32px;
+        min-width: 32px;
         border-radius: 50%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
@@ -899,6 +934,9 @@
         font-size: 0.9rem;
         color: var(--text-primary);
         font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Deadline */
@@ -908,6 +946,7 @@
         gap: 0.5rem;
         font-size: 0.9rem;
         color: var(--text-secondary);
+        white-space: nowrap;
     }
 
     .deadline.urgent {
@@ -922,6 +961,8 @@
 
     /* Status Dropdown */
     .status-select {
+        width: 100%;
+        max-width: 130px;
         padding: 0.5rem 0.75rem;
         border-radius: 8px;
         border: 2px solid var(--border-color);
@@ -945,11 +986,13 @@
     .row-actions {
         display: flex;
         gap: 0.5rem;
+        justify-content: flex-start;
     }
 
     .row-action-btn {
         width: 32px;
         height: 32px;
+        min-width: 32px;
         border-radius: 6px;
         border: none;
         background: var(--bg-secondary);
@@ -1652,250 +1695,68 @@
                         <div>Actions</div>
                     </div>
 
-                    <!-- Action Item 1 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
+                    {% if action_items %}
+                        {% for item in action_items %}
+                        <!-- Action Item {{ forloop.counter }} -->
+                        <div class="action-item-row {% if item.is_completed %}completed{% endif %}">
+                            <div class="custom-checkbox">
+                                <input type="checkbox" class="item-checkbox" {% if item.is_completed %}checked{% endif %}>
+                                <span class="checkmark">✓</span>
+                            </div>
+                            <div>
+                                <span class="priority-badge priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
+                            </div>
+                            <div class="task-text">{{ item.task }}</div>
+                            <div class="assignee">
+                                {% if item.assignee %}
+                                    <div class="assignee-avatar">{{ item.assignee|get_initials }}</div>
+                                    <span class="assignee-name">{{ item.assignee }}</span>
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </div>
+                            <div class="deadline {% if item.deadline|is_overdue %}urgent{% elif item.deadline|is_upcoming %}upcoming{% endif %}">
+                                {% if item.deadline %}
+                                    {% if item.deadline|is_overdue %}
+                                        <i class="bi bi-calendar-x"></i>
+                                    {% elif item.is_completed %}
+                                        <i class="bi bi-calendar-check"></i>
+                                    {% else %}
+                                        <i class="bi bi-calendar-event"></i>
+                                    {% endif %}
+                                    <span>{{ item.deadline|date:"M d, Y" }}</span>
+                                {% else %}
+                                    <i class="bi bi-calendar"></i>
+                                    <span class="text-muted">No deadline</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <select class="status-select" data-item-id="{{ item.id }}">
+                                    <option value="todo" {% if not item.is_completed %}selected{% endif %}>To Do</option>
+                                    <option value="inprogress">In Progress</option>
+                                    <option value="done" {% if item.is_completed %}selected{% endif %}>Done</option>
+                                </select>
+                            </div>
+                            <div class="row-actions">
+                                <button class="row-action-btn" onclick="editTask(this)" title="Edit" data-item-id="{{ item.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete" data-item-id="{{ item.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <span class="priority-badge priority-high">High</span>
-                        </div>
-                        <div class="task-text">Allocate 2 senior engineers to AI recommendation project</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">MR</div>
-                            <span class="assignee-name">M. Rodriguez</span>
-                        </div>
-                        <div class="deadline urgent">
-                            <i class="bi bi-calendar-x"></i>
-                            <span>Oct 15, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option>To Do</option>
-                                <option>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Item 2 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-high">High</span>
-                        </div>
-                        <div class="task-text">Prepare beta version of premium tier for mid-November</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">SC</div>
-                            <span class="assignee-name">S. Chen</span>
-                        </div>
-                        <div class="deadline urgent">
-                            <i class="bi bi-calendar-x"></i>
-                            <span>Nov 15, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option>To Do</option>
-                                <option selected>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
+                        {% endfor %}
+                    {% else %}
+                        <!-- No Action Items Message -->
+                        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                            <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p style="margin-top: 1rem;">No action items found for this meeting.</p>
+                            <button class="btn btn-primary mt-3" onclick="addNewTask()">
+                                <i class="bi bi-plus-lg me-2"></i>Add Action Item
                             </button>
                         </div>
-                    </div>
-
-                    <!-- Action Item 3 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-medium">Medium</span>
-                        </div>
-                        <div class="task-text">Schedule beta testing with top 10 enterprise clients</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">DT</div>
-                            <span class="assignee-name">D. Thompson</span>
-                        </div>
-                        <div class="deadline upcoming">
-                            <i class="bi bi-calendar-event"></i>
-                            <span>Oct 25, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option selected>To Do</option>
-                                <option>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Item 4 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-medium">Medium</span>
-                        </div>
-                        <div class="task-text">Launch holiday season marketing campaigns leveraging mobile app success</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">JP</div>
-                            <span class="assignee-name">J. Park</span>
-                        </div>
-                        <div class="deadline upcoming">
-                            <i class="bi bi-calendar-event"></i>
-                            <span>Nov 1, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option>To Do</option>
-                                <option selected>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Item 5 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-low">Low</span>
-                        </div>
-                        <div class="task-text">Reassess integration ecosystem goals based on team capacity</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">MR</div>
-                            <span class="assignee-name">M. Rodriguez</span>
-                        </div>
-                        <div class="deadline">
-                            <i class="bi bi-calendar"></i>
-                            <span>Nov 30, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option selected>To Do</option>
-                                <option>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Item 6 -->
-                    <div class="action-item-row">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox">
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-medium">Medium</span>
-                        </div>
-                        <div class="task-text">Document Q3 technical debt for Q4 addressing</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">MR</div>
-                            <span class="assignee-name">M. Rodriguez</span>
-                        </div>
-                        <div class="deadline upcoming">
-                            <i class="bi bi-calendar-event"></i>
-                            <span>Oct 20, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option>To Do</option>
-                                <option selected>In Progress</option>
-                                <option>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Action Item 7 -->
-                    <div class="action-item-row completed">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" class="item-checkbox" checked>
-                            <span class="checkmark">✓</span>
-                        </div>
-                        <div>
-                            <span class="priority-badge priority-high">High</span>
-                        </div>
-                        <div class="task-text">Complete mobile app redesign delivery</div>
-                        <div class="assignee">
-                            <div class="assignee-avatar">MR</div>
-                            <span class="assignee-name">M. Rodriguez</span>
-                        </div>
-                        <div class="deadline">
-                            <i class="bi bi-calendar-check"></i>
-                            <span>Sep 30, 2025</span>
-                        </div>
-                        <div>
-                            <select class="status-select">
-                                <option>To Do</option>
-                                <option>In Progress</option>
-                                <option selected>Done</option>
-                            </select>
-                        </div>
-                        <div class="row-actions">
-                            <button class="row-action-btn" onclick="editTask(this)" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="row-action-btn delete" onclick="deleteTask(this)" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Floating Action Button -->
@@ -1987,12 +1848,19 @@
                         <i class="bi bi-tags"></i>
                         Tags
                     </h4>
-                    <div class="tags-list">
-                        <span class="tag">Q4 Planning</span>
-                        <span class="tag">Strategy</span>
-                        <span class="tag">Product</span>
-                        <span class="tag">Enterprise</span>
-                    </div>
+                    {% if has_tags %}
+                        <div class="tags-list">
+                            {% for tag in tags %}
+                                <span class="tag" style="background-color: {{ tag.color }}15; color: {{ tag.color }}; border: 1px solid {{ tag.color }}40;">
+                                    {{ tag.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="metadata-value" style="padding: 1rem; text-align: center; color: var(--text-secondary);">
+                            No tags added
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Related Meetings Card -->
@@ -2001,27 +1869,21 @@
                         <i class="bi bi-clock-history"></i>
                         Related Meetings
                     </h4>
-                    <div class="related-meeting" onclick="window.location.href='/meeting/2'">
-                        <div class="related-meeting-title">Q3 Performance Review</div>
-                        <div class="related-meeting-date">
-                            <i class="bi bi-calendar3"></i>
-                            Sep 30, 2025
+                    {% if has_related_meetings %}
+                        {% for related in related_meetings %}
+                            <div class="related-meeting" onclick="window.location.href='/meeting/{{ related.id }}/'">
+                                <div class="related-meeting-title">{{ related.title }}</div>
+                                <div class="related-meeting-date">
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ related.created_at|date:"M d, Y" }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="metadata-value" style="padding: 1rem; text-align: center; color: var(--text-secondary);">
+                            No related meetings
                         </div>
-                    </div>
-                    <div class="related-meeting" onclick="window.location.href='/meeting/3'">
-                        <div class="related-meeting-title">Product Roadmap Discussion</div>
-                        <div class="related-meeting-date">
-                            <i class="bi bi-calendar3"></i>
-                            Oct 5, 2025
-                        </div>
-                    </div>
-                    <div class="related-meeting" onclick="window.location.href='/meeting/4'">
-                        <div class="related-meeting-title">Engineering Sprint Planning</div>
-                        <div class="related-meeting-date">
-                            <i class="bi bi-calendar3"></i>
-                            Oct 8, 2025
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Quick Actions Card -->
@@ -2379,7 +2241,7 @@
         });
     });
 
-    // Show success notification if coming from processing page
+    // Show success notification if coming from processing page (DISABLED)
     function closeNotification() {
         const notification = document.getElementById('successNotification');
         notification.style.animation = 'slideOut 0.5s ease-out';
@@ -2388,21 +2250,23 @@
         }, 500);
     }
 
-    // Check if redirected from processing page
+    // Check if redirected from processing page (DISABLED - notification removed)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('fromProcessing') === 'true') {
-        const notification = document.getElementById('successNotification');
-        notification.style.display = 'block';
+        // Notification disabled per user request
+        // const notification = document.getElementById('successNotification');
+        // notification.style.display = 'block';
         
         // Auto-close after 5 seconds
-        setTimeout(() => {
-            closeNotification();
-        }, 5000);
+        // setTimeout(() => {
+        //     closeNotification();
+        // }, 5000);
         
         // Remove the query parameter from URL
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
     }
+
 </script>
 
 <style>
