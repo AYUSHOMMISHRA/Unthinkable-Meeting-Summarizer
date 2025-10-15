@@ -17,34 +17,106 @@ from typing import Dict, List, Optional, Any
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Comprehensive prompt template for meeting analysis
-SUMMARY_PROMPT = """You are an AI assistant specialized in analyzing meeting transcripts.
+# ============================================
+# AI PROMPT TEMPLATE FOR MEETING SUMMARIZATION
+# ============================================
+# System Role: Meeting Analysis Expert
+# Model: LLaMA 3.1 8B Instruct / GPT-4
+# Temperature: 0.3 (low for factual accuracy)
+# Max Tokens: 2000
+# Response Format: JSON Object (enforced)
+# ============================================
 
-Analyze the following meeting transcript and extract:
+SUMMARY_PROMPT = """You are a meeting analysis expert specializing in extracting actionable insights from meeting transcripts.
 
-1. **Executive Summary**: A concise 3-4 sentence overview of the entire meeting
-2. **Key Decisions**: Important decisions made during the meeting (as array of strings)
-3. **Action Items**: Specific tasks identified with details (as array of objects with: task, assignee, priority, deadline)
-4. **Discussion Topics**: Main themes and topics discussed (as array of strings)
-5. **Participants**: List of people who participated in the meeting (extract names mentioned in the transcript)
-6. **Insights**: Key insights, learnings, or observations from the meeting (as array of strings)
+Your task is to analyze the following meeting transcript and extract structured information in JSON format.
 
-Return your analysis in this exact JSON format:
+EXTRACTION REQUIREMENTS:
+
+1. **Executive Summary** (String)
+   - Provide a concise 3-4 sentence overview of the meeting
+   - Cover: main topics discussed, key outcomes, and next steps
+   - Focus on business impact and strategic decisions
+   - Keep it professional and factual
+
+2. **Key Decisions** (Array of Strings)
+   - Extract all important decisions made during the meeting
+   - Include context: what was decided and why
+   - Format: "Decision: Description with context"
+   - Examples:
+     * "Approved Q4 budget allocation of $500K for AI development"
+     * "Selected vendor ABC for cloud infrastructure migration"
+     * "Postponed product launch to November 15th due to testing requirements"
+
+3. **Action Items** (Array of Objects)
+   - Identify all tasks, assignments, and follow-ups mentioned
+   - Each action item MUST include:
+     * task (string): Clear description of what needs to be done
+     * assignee (string): Person responsible (extract from transcript)
+     * priority (string): "high", "medium", or "low" based on urgency/importance
+     * deadline (string or null): Date in "YYYY-MM-DD" format, or null if not mentioned
+   - Examples:
+     * {{"task": "Complete project proposal and submit to stakeholders", "assignee": "John Doe", "priority": "high", "deadline": "2025-10-20"}}
+     * {{"task": "Schedule follow-up meeting with engineering team", "assignee": "Jane Smith", "priority": "medium", "deadline": "2025-10-25"}}
+
+4. **Discussion Topics** (Array of Strings)
+   - List main themes and topics discussed in the meeting
+   - Group related discussions under meaningful topic names
+   - Focus on business-relevant topics
+   - Examples: "Q4 Budget Planning", "Product Roadmap 2026", "Team Restructuring"
+
+5. **Participants** (Array of Strings)
+   - Extract names of all people who participated in the meeting
+   - Include their roles/titles if mentioned in transcript
+   - Format: "Name (Role)" or just "Name" if role unknown
+   - Examples: "John Doe (VP Engineering)", "Jane Smith (Product Manager)"
+
+6. **Insights** (Array of Strings)
+   - Identify key learnings, observations, or important points raised
+   - Include concerns, risks, opportunities, or strategic implications
+   - Examples:
+     * "Team morale is high despite challenging project timelines"
+     * "Customer feedback on beta version is overwhelmingly positive"
+     * "Technical debt needs to be addressed in Q1 2026"
+
+OUTPUT FORMAT (JSON ONLY):
+
 {{
-  "executive_summary": "...",
-  "key_decisions": ["decision 1", "decision 2"],
-  "action_items": [
-    {{"task": "...", "assignee": "...", "priority": "high/medium/low", "deadline": "YYYY-MM-DD or null"}}
+  "executive_summary": "Brief 3-4 sentence overview of the meeting covering main topics, key outcomes, and next steps.",
+  "key_decisions": [
+    "Decision 1: Description with context",
+    "Decision 2: Description with context"
   ],
-  "discussion_topics": ["topic 1", "topic 2"],
-  "participants": ["person 1", "person 2"],
-  "insights": ["insight 1", "insight 2"]
+  "action_items": [
+    {{"task": "Task description", "assignee": "Person Name", "priority": "high", "deadline": "2025-10-20"}},
+    {{"task": "Another task", "assignee": "Another Person", "priority": "medium", "deadline": null}}
+  ],
+  "discussion_topics": [
+    "Topic 1",
+    "Topic 2"
+  ],
+  "participants": [
+    "John Doe (VP Engineering)",
+    "Jane Smith (Product Manager)"
+  ],
+  "insights": [
+    "Key insight or observation 1",
+    "Key insight or observation 2"
+  ]
 }}
 
-Transcript:
+IMPORTANT RULES:
+- Return ONLY valid JSON, no additional text or markdown
+- All fields are REQUIRED (use empty arrays [] if no data found)
+- Priority must be exactly: "high", "medium", or "low" (lowercase)
+- Deadline must be "YYYY-MM-DD" format or null
+- Be factual - extract only information present in the transcript
+- Do not hallucinate or invent information not in the transcript
+
+MEETING TRANSCRIPT:
 {transcript}
 
-Return ONLY the JSON, no additional text."""
+Return your analysis as a JSON object following the exact format above."""
 
 
 class SummarizationService:
