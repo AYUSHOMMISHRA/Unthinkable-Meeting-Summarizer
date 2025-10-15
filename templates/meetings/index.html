@@ -19,8 +19,9 @@
     }
 
     .page-header-card h1 {
-        font-size: 3rem;
-        font-weight: 700;
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         background-clip: text;
@@ -116,6 +117,7 @@
         background: var(--bg-secondary);
         transition: all 0.3s ease;
         cursor: pointer;
+        margin-bottom: 2rem;
     }
 
     .file-upload-label:hover {
@@ -133,6 +135,29 @@
         font-size: 4rem;
         color: #667eea;
         margin-bottom: 1rem;
+    }
+
+    /* Style the file input to match dark theme */
+    input[type="file"]::file-selector-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-right: 1rem;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    input[type="file"] {
+        color: var(--text-primary);
+        font-size: 0.95rem;
     }
 
     .file-info {
@@ -227,32 +252,17 @@
     }
 
     .custom-progress {
-        width: 100%;
-        height: 24px;
+        height: 8px;
         border-radius: 10px;
         background: var(--bg-secondary);
         overflow: hidden;
-        border: 1px solid var(--border-color);
-    }    .custom-progress-bar {
+    }
+
+    .custom-progress-bar {
         height: 100%;
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         transition: width 0.3s ease;
         animation: shimmer 2s infinite;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 50px;
-    }
-
-    .progress-percentage {
-        color: white;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        position: absolute;
-        white-space: nowrap;
-        line-height: 24px;
     }
 
     @keyframes shimmer {
@@ -298,6 +308,31 @@
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header-card h1 {
+            font-size: 2.5rem;
+        }
+
+        .page-header-card .tagline {
+            font-size: 1.1rem;
+        }
+
+        .upload-zone {
+            padding: 3rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-header-card h1 {
+            font-size: 2rem;
+        }
+
+        .page-header-card .tagline {
+            font-size: 1rem;
+        }
     }
 </style>
 
@@ -368,15 +403,15 @@
                             <p class="mt-2 mb-0 text-muted small"><i class="bi bi-info-circle me-1"></i>Maximum file size: 100MB. For faster uploads, compress large files.</p>
                         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-wrapper" id="progressWrapper">
-            <div class="custom-progress">
-                <div class="custom-progress-bar" id="progressBar" style="width: 0%">
-                    <span class="progress-percentage" id="progressPercentage">0%</span>
-                </div>
-            </div>
-            <p class="text-center mt-2 text-muted small" id="progressText">Uploading...</p>
-        </div>                        <!-- Submit Button -->
+                        <!-- Progress Bar -->
+                        <div class="progress-wrapper" id="progressWrapper">
+                            <div class="custom-progress">
+                                <div class="custom-progress-bar" id="progressBar" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center mt-2 text-muted small" id="progressText">Uploading...</p>
+                        </div>
+
+                        <!-- Submit Button -->
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <i class="bi bi-magic me-2"></i>Process Meeting
@@ -420,7 +455,7 @@
 </section>
 
 <!-- Stats Section -->
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="stats-section">
             <div class="stat-card">
@@ -452,22 +487,12 @@
     const progressWrapper = document.getElementById('progressWrapper');
     const submitBtn = document.getElementById('submitBtn');
 
-    console.log('Upload form elements:', {
-        fileInput: !!fileInput,
-        dropZone: !!dropZone,
-        uploadForm: !!uploadForm,
-        submitBtn: !!submitBtn
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            displayFileInfo(file);
+        }
     });
-
-    // File change handler
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                displayFileInfo(file);
-            }
-        });
-    }
 
     // Drag and drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -518,101 +543,50 @@
     }
 
     // Form submission with progress
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
-            console.log('Form submit event triggered!');
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('preventDefault called, form should NOT submit normally');
-            
-            const formData = new FormData(uploadForm);
-            const xhr = new XMLHttpRequest();
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(uploadForm);
+        const xhr = new XMLHttpRequest();
 
-            // Show progress bar immediately at 0%
-            progressWrapper.classList.add('show');
-            submitBtn.disabled = true;
-            const progressBar = document.getElementById('progressBar');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const progressText = document.getElementById('progressText');
-            
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            progressText.textContent = 'Preparing upload...';
-
-            // Track upload progress with more granular updates
-            xhr.upload.addEventListener('progress', function(e) {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    console.log(`Upload progress: ${e.loaded} / ${e.total} = ${percentComplete}%`);
-                    
-                    progressBar.style.width = percentComplete + '%';
-                    progressPercentage.textContent = percentComplete + '%';
-                    
-                    if (percentComplete < 100) {
-                        progressText.textContent = `Uploading... ${percentComplete}%`;
-                    } else {
-                        progressText.textContent = 'Upload complete! Processing...';
-                    }
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                const progressBar = document.getElementById('progressBar');
+                progressBar.style.width = percentComplete + '%';
+                
+                if (percentComplete === 100) {
+                    document.getElementById('progressText').textContent = 'Processing...';
                 }
-            });
+            }
+        });
 
-            // Track when upload starts
-            xhr.upload.addEventListener('loadstart', function(e) {
-                console.log('Upload started');
-                progressText.textContent = 'Upload starting...';
-            });
-
-            xhr.addEventListener('load', function() {
-                console.log('XHR load event, status:', xhr.status);
-                console.log('Response:', xhr.responseText.substring(0, 200));
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.redirect_url) {
-                            progressText.textContent = 'Processing complete! Redirecting...';
-                            window.location.href = response.redirect_url;
-                        }
-                    } catch (e) {
-                        console.error('Failed to parse response:', e);
-                        alert('Upload failed. Please try again.');
-                        progressWrapper.classList.remove('show');
-                        submitBtn.disabled = false;
-                    }
-                } else {
-                    alert('Upload failed. Please try again.');
-                    progressWrapper.classList.remove('show');
-                    submitBtn.disabled = false;
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.redirect_url) {
+                    window.location.href = response.redirect_url;
                 }
-            });
-
-            xhr.addEventListener('error', function() {
-                console.error('XHR error event');
-                alert('Upload failed. Please check your connection.');
+            } else {
+                alert('Upload failed. Please try again.');
                 progressWrapper.classList.remove('show');
                 submitBtn.disabled = false;
-            });
-
-            xhr.open('POST', uploadForm.action || window.location.href);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            
-            // Get CSRF token from cookie or form
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            if (csrfToken) {
-                xhr.setRequestHeader('X-CSRFToken', csrfToken);
-                console.log('CSRF token set');
             }
-            
-            console.log('Starting XHR send to:', uploadForm.action || window.location.href);
-            xhr.send(formData);
-            
-            return false; // Extra safety to prevent form submission
         });
-        
-        console.log('Form submit listener attached successfully');
-    } else {
-        console.error('Upload form not found!');
-    }
+
+        xhr.addEventListener('error', function() {
+            alert('Upload failed. Please check your connection.');
+            progressWrapper.classList.remove('show');
+            submitBtn.disabled = false;
+        });
+
+        xhr.open('POST', uploadForm.action || window.location.href);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(formData);
+
+        progressWrapper.classList.add('show');
+        submitBtn.disabled = true;
+    });
 </script>
 {% endblock %}
 
