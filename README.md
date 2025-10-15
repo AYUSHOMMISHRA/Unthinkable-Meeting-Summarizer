@@ -1,10 +1,18 @@
 # Meeting Summarizer 🎙️
 
-> AI-powered meeting transcription and summarization tool using Whisper (Groq) for free transcription and LLaMA for intelligent summarization.
+<div align="center">
 
-[![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Django](https://img.shields.io/badge/Django-5.2-green.svg)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Status](https://img.shields.io/badge/Status-Active-success.svg)
+![AI Powered](https://img.shields.io/badge/AI-Whisper%20%2B%20LLaMA-purple.svg)
+
+**Transform your meetings into actionable insights with AI-powered transcription and summarization**
+
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation) • [Contributing](#-contributing)
+
+</div>
 
 ---
 
@@ -20,6 +28,30 @@
 - [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
 - [License](#-license)
+
+---
+
+## 🧩 Project Overview
+
+### What is Meeting Summarizer?
+
+Meeting Summarizer is a powerful Django-based web application that automatically transcribes meeting audio files and generates intelligent summaries using state-of-the-art AI models. It eliminates the need for manual note-taking by extracting key decisions, action items, discussion topics, and participant information from your meetings.
+
+### Purpose & Motivation
+
+In today's fast-paced business environment, professionals spend countless hours in meetings, yet critical information often gets lost or forgotten. Studies show that 71% of meetings are considered unproductive by employees. This project addresses that problem by:
+
+- **Saving Time**: Automated transcription and summarization reduce post-meeting work by 80%
+- **Improving Accountability**: Automatically extracted action items with assignees and deadlines
+- **Enhancing Knowledge Management**: Searchable, organized meeting records with tags and relationships
+- **Increasing Accessibility**: Makes meeting content accessible to those who couldn't attend
+
+### Real-World Problem Solved
+
+- **For Teams**: Never miss important decisions or action items again
+- **For Managers**: Track team commitments and follow-ups efficiently
+- **For Remote Workers**: Stay aligned with async meeting summaries
+- **For Organizations**: Build a searchable knowledge base of meetings
 
 ---
 
@@ -176,6 +208,55 @@
 
 ---
 
+## 🛠️ Tech Stack
+
+### Backend Framework
+- **Django 4.2.7** - High-level Python web framework
+- **Python 3.11+** - Core programming language
+
+### AI & Machine Learning
+- **Groq Whisper (whisper-large-v3)** - Free, state-of-the-art speech recognition (6,000 requests/day)
+- **LLaMA 3.1 8B Instruct** (via OpenRouter) - Advanced language model for summarization
+- **OpenAI API Client 1.3.5** - API integration for AI services
+- **tiktoken 0.5.1** - Token counting for AI models
+
+### Database
+- **SQLite** (Development) - Lightweight, file-based database
+- **PostgreSQL** (Production Ready) - Robust relational database
+
+### Frontend
+- **Bootstrap 5.3.2** - Responsive UI framework
+- **Bootstrap Icons 1.11.1** - Icon library
+- **JavaScript (Vanilla)** - Interactive features
+- **HTML5/CSS3** - Modern web standards
+
+### File Processing
+- **Pillow 10.1.0** - Image processing library
+- **pydub 0.25.1** - Audio file manipulation
+- **mutagen** - Audio metadata extraction
+
+### Development Tools
+- **python-decouple 3.8** - Environment variable management
+- **python-dotenv 1.0.0** - .env file support
+- **requests 2.31.0** - HTTP library
+- **python-dateutil 2.8.2** - Date/time utilities
+
+### Testing & Quality
+- **pytest 7.4.3** - Testing framework
+- **pytest-django 4.7.0** - Django-specific pytest plugin
+- **factory-boy 3.3.0** - Test fixture generation
+- **faker 20.1.0** - Fake data generation
+- **black 23.11.0** - Code formatter
+- **flake8 6.1.0** - Linter
+- **pylint 3.0.3** - Static code analyzer
+- **isort 5.12.0** - Import sorter
+
+### Production Server
+- **gunicorn 21.2.0** - WSGI HTTP server
+- **whitenoise 6.6.0** - Static file serving
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -223,6 +304,7 @@ Unthinkable-Meeting-Summarizer/
 ```
 
 ---
+
 
 ## 🔧 Configuration
 
@@ -410,6 +492,63 @@ response = client.chat.completions.create(
 ```
 
 ---
+## 🧠 Architecture
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Frontend                            │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐     │
+│  │   Upload    │  │  Processing  │  │  Results View   │     │
+│  │  Interface  │  │    Status    │  │  (Tabs/Filters) │     │
+│  └─────────────┘  └──────────────┘  └─────────────────┘     │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ HTTP Requests
+┌───────────────────────────▼─────────────────────────────────┐
+│                    Django Application                       │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                     Views Layer                      │   │
+│  │  • index() - Upload interface                        │   │
+│  │  • upload_meeting() - File handling                  │   │
+│  │  • processing() - Status display                     │   │
+│  │  • meeting_detail() - Results display                │   │
+│  │  • meetings_list() - List with filters               │   │
+│  └────────────────────┬─────────────────────────────────┘   │
+│                       │                                     │
+│  ┌────────────────────▼─────────────────────────────────┐   │
+│  │                  Services Layer                      │   │
+│  │  ┌──────────────────────────────────────────────┐    │   │
+│  │  │       ProcessingService (Orchestrator)       │    │   │
+│  │  │  • Manages workflow                          │    │   │
+│  │  │  • Error handling                            │    │   │
+│  │  │  • Status updates                            │    │    
+│  │  └──────────┬───────────────────┬───────────────┘    │   │
+│  │             │                   │                    │   │
+│  │  ┌──────────▼──────────┐  ┌────▼────────────────┐    │   │
+│  │  │ TranscriptionService│  │ SummarizationService│    │   │
+│  │  │  • Groq API client  │  │  • OpenRouter client│    │   │
+│  │  │  • Whisper model    │  │  • LLaMA model      │    │   │
+│  │  │  • Audio validation │  │  • JSON parsing     │    │   │
+│  │  └─────────────────────┘  └─────────────────────┘    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                       │                                     │
+│  ┌────────────────────▼─────────────────────────────────┐   │
+│  │                   Models Layer                       │   │
+│  │  • Meeting (audio, status, metadata)                 │   │
+│  │  • Transcript (text, word count, language)           │   │
+│  │  • Summary (executive summary, decisions, topics)    │   │
+│  │  • ActionItem (task, assignee, priority, deadline)   │   │
+│  │  • Tag (name, color, related meetings)               │   │
+│  └────────────────────┬─────────────────────────────────┘   │
+└───────────────────────┼─────────────────────────────────────┘
+                        │
+        ┌───────────────▼───────────────┐
+        │         Database              │
+        │  • SQLite (Development)       │
+        │  • PostgreSQL (Production)    │
+        └───────────────────────────────┘
+```
 
 ## �️ Security & Best Practices
 
