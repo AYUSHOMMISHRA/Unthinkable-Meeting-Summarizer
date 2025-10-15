@@ -42,7 +42,7 @@ class MeetingUploadForm(forms.ModelForm):
             'audio_file': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': '.mp3,.wav,.m4a',
-                'id': 'audioFileInput'
+                'id': 'id_audio_file'
             }),
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
