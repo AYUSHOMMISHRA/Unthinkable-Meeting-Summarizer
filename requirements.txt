@@ -1,0 +1,101 @@
+# ============================================
+# MEETING SUMMARIZER - Python Requirements
+# ============================================
+# Install with: pip install -r requirements.txt
+
+# ============================================
+# Core Django
+# ============================================
+Django==4.2.7
+python-decouple==3.8
+
+# ============================================
+# OpenAI Integration
+# ============================================
+openai==1.3.5
+tiktoken==0.5.1
+
+# ============================================
+# Database Drivers (Optional)
+# ============================================
+# PostgreSQL
+# psycopg2-binary==2.9.9
+
+# MySQL
+# mysqlclient==2.2.0
+
+# ============================================
+# Caching & Background Tasks (Optional)
+# ============================================
+# Redis cache
+# redis==5.0.1
+# django-redis==5.4.0
+
+# Celery for async tasks
+# celery==5.3.4
+# django-celery-beat==2.5.0
+# django-celery-results==2.5.1
+
+# ============================================
+# API & Serialization (Optional)
+# ============================================
+# Django REST Framework
+# djangorestframework==3.14.0
+
+# CORS headers
+# django-cors-headers==4.3.1
+
+# ============================================
+# File Handling
+# ============================================
+Pillow==10.1.0  # Image processing
+pydub==0.25.1   # Audio file manipulation
+
+# ============================================
+# Utilities
+# ============================================
+python-dotenv==1.0.0  # Alternative to python-decouple
+requests==2.31.0      # HTTP library
+python-dateutil==2.8.2
+
+# ============================================
+# Storage (Optional)
+# ============================================
+# AWS S3 storage
+# boto3==1.29.7
+# django-storages==1.14.2
+
+# ============================================
+# Monitoring & Error Tracking (Optional)
+# ============================================
+# Sentry
+# sentry-sdk==1.38.0
+
+# ============================================
+# Testing
+# ============================================
+pytest==7.4.3
+pytest-django==4.7.0
+factory-boy==3.3.0
+faker==20.1.0
+
+# ============================================
+# Code Quality
+# ============================================
+black==23.11.0          # Code formatter
+flake8==6.1.0           # Linter
+pylint==3.0.3           # Static analyzer
+isort==5.12.0           # Import sorter
+
+# ============================================
+# Development Tools
+# ============================================
+django-debug-toolbar==4.2.0  # Debug toolbar (use in DEBUG mode only)
+ipython==8.18.1              # Enhanced Python shell
+django-extensions==3.2.3     # Useful Django extensions
+
+# ============================================
+# Production Server
+# ============================================
+gunicorn==21.2.0        # WSGI HTTP server
+whitenoise==6.6.0       # Static file serving
