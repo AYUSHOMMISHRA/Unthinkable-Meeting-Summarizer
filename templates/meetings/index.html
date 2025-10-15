@@ -1,0 +1,668 @@
+{% extends 'base.html' %}
+
+{% block title %}Meeting Summarizer - Transform Your Meetings{% endblock %}
+
+{% block content %}
+<style>
+    /* Page Header Card */
+    .page-header-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        box-shadow: 0 20px 60px var(--shadow-md);
+        margin: 2rem auto;
+        max-width: 900px;
+        border: 1px solid var(--border-color);
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .page-header-card h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .page-header-card .tagline {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        margin: 0;
+        min-height: 40px;
+    }
+
+    .typing-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background: #667eea;
+        margin-left: 4px;
+        animation: blink 0.8s infinite;
+        vertical-align: middle;
+    }
+
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Define card-bg variable if not already defined */
+    :root {
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --shadow-md: rgba(0, 0, 0, 0.1);
+        --border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    [data-theme="dark"] {
+        --card-bg: rgba(30, 41, 59, 0.95);
+        --shadow-md: rgba(0, 0, 0, 0.5);
+        --border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    /* Upload Card Styles */
+    .upload-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .upload-card:hover {
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .file-upload-input {
+        position: absolute;
+        font-size: 100px;
+        opacity: 0;
+        right: 0;
+        top: 0;
+        cursor: pointer;
+    }
+
+    .file-upload-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        border: 2px dashed var(--border-color);
+        border-radius: 15px;
+        background: var(--bg-secondary);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .file-upload-label:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    .file-upload-label.dragging {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .file-info {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+        display: none;
+    }
+
+    .file-info.show {
+        display: block;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+    }
+
+    .feature-card {
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+        padding: 2rem 0;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--card-bg);
+        border-radius: 15px;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Progress Bar */
+    .progress-wrapper {
+        display: none;
+        margin-top: 2rem;
+    }
+
+    .progress-wrapper.show {
+        display: block;
+    }
+
+    .custom-progress {
+        width: 100%;
+        height: 24px;
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }    .custom-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+        animation: shimmer 2s infinite;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 50px;
+    }
+
+    .progress-percentage {
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        position: absolute;
+        white-space: nowrap;
+        line-height: 24px;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    /* Supported Formats */
+    .supported-formats {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .format-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        margin: 0.25rem;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>
+
+<!-- Page Header Card -->
+<div class="page-header-card">
+    <h1>Meeting Summarizer</h1>
+    <p class="tagline">
+        <span id="typedText"></span><span class="typing-cursor"></span>
+    </p>
+</div>
+
+<!-- Upload Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="upload-card">
+                    <h2 class="text-center mb-4">Upload Your Meeting Recording</h2>
+                    
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'meetings:index' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Title Input -->
+                        <div class="mb-4">
+                            <label for="id_title" class="form-label">Meeting Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="file-upload-wrapper">
+                            <label for="id_audio_file" class="file-upload-label" id="dropZone">
+                                <i class="bi bi-cloud-upload upload-icon"></i>
+                                <p class="mb-2"><strong>Drop your audio file here</strong></p>
+                                <p class="text-muted mb-0">or click to browse</p>
+                            </label>
+                            {{ form.audio_file }}
+                            {% if form.audio_file.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.audio_file.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- File Info -->
+                        <div class="file-info" id="fileInfo">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-music me-3" style="font-size: 2rem; color: #667eea;"></i>
+                                <div>
+                                    <p class="mb-1 fw-bold" id="fileName"></p>
+                                    <p class="mb-0 text-muted small" id="fileSize"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Supported Formats -->
+                        <div class="supported-formats">
+                            <p class="mb-2 text-muted small">Supported formats:</p>
+                            <span class="format-badge">MP3</span>
+                            <span class="format-badge">WAV</span>
+                            <span class="format-badge">M4A</span>
+                            <span class="format-badge">OGG</span>
+                            <span class="format-badge">FLAC</span>
+                            <p class="mt-2 mb-0 text-muted small"><i class="bi bi-info-circle me-1"></i>Maximum file size: 100MB. For faster uploads, compress large files.</p>
+                        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-wrapper" id="progressWrapper">
+            <div class="custom-progress">
+                <div class="custom-progress-bar" id="progressBar" style="width: 0%">
+                    <span class="progress-percentage" id="progressPercentage">0%</span>
+                </div>
+            </div>
+            <p class="text-center mt-2 text-muted small" id="progressText">Uploading...</p>
+        </div>                        <!-- Submit Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="bi bi-magic me-2"></i>Process Meeting
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Powered by Advanced AI</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3 class="feature-title">AI Transcription</h3>
+                <p class="feature-description">
+                    State-of-the-art speech recognition converts your audio into accurate text transcripts.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3 class="feature-title">Smart Summaries</h3>
+                <p class="feature-description">
+                    Get concise, well-structured summaries with key points, decisions, and discussions.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3 class="feature-title">Action Items</h3>
+                <p class="feature-description">
+                    Automatically extract action items with assignees, priorities, and deadlines.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-number">10x</div>
+                <div class="stat-label">Faster Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">95%</div>
+                <div class="stat-label">Accuracy Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100MB</div>
+                <div class="stat-label">Max File Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2hrs</div>
+                <div class="stat-label">Max Duration</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // File upload handling
+    const fileInput = document.getElementById('id_audio_file');
+    const dropZone = document.getElementById('dropZone');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadForm = document.getElementById('uploadForm');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const submitBtn = document.getElementById('submitBtn');
+
+    console.log('Upload form elements:', {
+        fileInput: !!fileInput,
+        dropZone: !!dropZone,
+        uploadForm: !!uploadForm,
+        submitBtn: !!submitBtn
+    });
+
+    // File change handler
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+            }
+        });
+    }
+
+    // Drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('dragging');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('dragging');
+        });
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        if (files.length > 0) {
+            displayFileInfo(files[0]);
+        }
+    });
+
+    function displayFileInfo(file) {
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.classList.add('show');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Form submission with progress
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            console.log('Form submit event triggered!');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('preventDefault called, form should NOT submit normally');
+            
+            const formData = new FormData(uploadForm);
+            const xhr = new XMLHttpRequest();
+
+            // Show progress bar immediately at 0%
+            progressWrapper.classList.add('show');
+            submitBtn.disabled = true;
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressText = document.getElementById('progressText');
+            
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            progressText.textContent = 'Preparing upload...';
+
+            // Track upload progress with more granular updates
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    console.log(`Upload progress: ${e.loaded} / ${e.total} = ${percentComplete}%`);
+                    
+                    progressBar.style.width = percentComplete + '%';
+                    progressPercentage.textContent = percentComplete + '%';
+                    
+                    if (percentComplete < 100) {
+                        progressText.textContent = `Uploading... ${percentComplete}%`;
+                    } else {
+                        progressText.textContent = 'Upload complete! Processing...';
+                    }
+                }
+            });
+
+            // Track when upload starts
+            xhr.upload.addEventListener('loadstart', function(e) {
+                console.log('Upload started');
+                progressText.textContent = 'Upload starting...';
+            });
+
+            xhr.addEventListener('load', function() {
+                console.log('XHR load event, status:', xhr.status);
+                console.log('Response:', xhr.responseText.substring(0, 200));
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.redirect_url) {
+                            progressText.textContent = 'Processing complete! Redirecting...';
+                            window.location.href = response.redirect_url;
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse response:', e);
+                        alert('Upload failed. Please try again.');
+                        progressWrapper.classList.remove('show');
+                        submitBtn.disabled = false;
+                    }
+                } else {
+                    alert('Upload failed. Please try again.');
+                    progressWrapper.classList.remove('show');
+                    submitBtn.disabled = false;
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                console.error('XHR error event');
+                alert('Upload failed. Please check your connection.');
+                progressWrapper.classList.remove('show');
+                submitBtn.disabled = false;
+            });
+
+            xhr.open('POST', uploadForm.action || window.location.href);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            // Get CSRF token from cookie or form
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                console.log('CSRF token set');
+            }
+            
+            console.log('Starting XHR send to:', uploadForm.action || window.location.href);
+            xhr.send(formData);
+            
+            return false; // Extra safety to prevent form submission
+        });
+        
+        console.log('Form submit listener attached successfully');
+    } else {
+        console.error('Upload form not found!');
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Typing animation for tagline
+    const phrases = [
+        'Transform your meetings into actionable insights with AI',
+        'Automatic transcription powered by Whisper AI',
+        'Intelligent summaries generated by GPT-4',
+        'Extract action items and key decisions instantly',
+        'Never miss important meeting details again',
+        'Save hours on manual note-taking'
+    ];
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
+
+    function typeText() {
+        const typedTextElement = document.getElementById('typedText');
+        if (!typedTextElement) return;
+        
+        const currentPhrase = phrases[phraseIndex];
+
+        if (isDeleting) {
+            typedTextElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            typingSpeed = 50;
+        } else {
+            typedTextElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            typingSpeed = 100;
+        }
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            // Pause at end of phrase
+            typingSpeed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            typingSpeed = 500;
+        }
+
+        setTimeout(typeText, typingSpeed);
+    }
+
+    // Start typing animation when page loads
+    setTimeout(typeText, 500);
+</script>
+{% endblock %}
