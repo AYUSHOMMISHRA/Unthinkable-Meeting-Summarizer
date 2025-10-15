@@ -119,6 +119,23 @@ class Meeting(models.Model):
         help_text='Whether this meeting is starred/favorited'
     )
     
+    # Tags for categorization
+    tags = models.ManyToManyField(
+        'Tag',
+        blank=True,
+        related_name='meetings',
+        help_text='Tags for categorizing this meeting'
+    )
+    
+    # Related meetings (optional suggestions)
+    related_meetings = models.ManyToManyField(
+        'self',
+        blank=True,
+        symmetrical=False,
+        related_name='referenced_by',
+        help_text='Other meetings related to this one'
+    )
+    
     class Meta:
         """Model metadata configuration."""
         ordering = ['-created_at']  # Show newest meetings first
@@ -595,6 +612,51 @@ class ActionItem(models.Model):
             return "⚠️ Due Soon"
         else:
             return "⏳ Pending"
+
+
+# ============================================
+# 6. TAG MODEL
+# ============================================
+
+class Tag(models.Model):
+    """
+    Represents a tag/label that can be applied to meetings.
+    
+    Tags help categorize and organize meetings for easier filtering
+    and discovery (e.g., "Q4 Planning", "Engineering", "Product").
+    
+    Attributes:
+        name (CharField): Tag name (unique)
+        color (CharField): Hex color code for visual display
+        created_at (DateTimeField): Timestamp when tag was created
+    """
+    
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text='Tag name (e.g., "Q4 Planning", "Engineering")'
+    )
+    
+    color = models.CharField(
+        max_length=7,
+        default='#6c757d',
+        help_text='Hex color code (e.g., #007bff)'
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Timestamp when tag was created'
+    )
+    
+    class Meta:
+        """Model metadata configuration."""
+        ordering = ['name']
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
+    
+    def __str__(self):
+        """String representation of the tag."""
+        return self.name
 
 
 # ============================================
