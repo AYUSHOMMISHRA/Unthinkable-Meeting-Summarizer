@@ -30,12 +30,11 @@ urlpatterns = [
     # List all meetings with pagination
     path('meetings/', views.meetings_list, name='list'),
     
-    
-    # Toggle star/favorite status (AJAX)
-    path('toggle-star/<int:meeting_id>/', views.toggle_star, name='toggle_star'),
-    
     # Delete a meeting
     path('delete/<int:meeting_id>/', views.delete_meeting, name='delete'),
+    
+    # Toggle star/favorite status
+    path('toggle-star/<int:meeting_id>/', views.toggle_star, name='toggle_star'),
     
     # About page
     path('about/', views.about, name='about'),
