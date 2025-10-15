@@ -343,14 +343,24 @@ def meeting_detail(request, meeting_id):
         # Get all action items ordered by priority
         action_items = meeting.action_items.all().order_by('-priority', 'deadline')
         
+        # Get tags for this meeting
+        tags = meeting.tags.all()
+        
+        # Get related meetings (limit to 3 most recent)
+        related_meetings = meeting.related_meetings.filter(status='completed').order_by('-created_at')[:3]
+        
         context = {
             'meeting': meeting,
             'transcript': transcript,
             'summary': summary,
             'action_items': action_items,
+            'tags': tags,
+            'related_meetings': related_meetings,
             'has_transcript': transcript is not None,
             'has_summary': summary is not None,
             'has_action_items': action_items.exists(),
+            'has_tags': tags.exists(),
+            'has_related_meetings': related_meetings.exists(),
         }
         
         return render(request, 'meetings/detail.html', context)
