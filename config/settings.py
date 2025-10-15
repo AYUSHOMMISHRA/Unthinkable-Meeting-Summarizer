@@ -35,7 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='')  # Set in environment for production
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-meeting-summarizer-dev-key-change-in-production-2025')
 
 # ============================================
 # 10. DEBUG SETTINGS
@@ -236,7 +236,8 @@ MAX_AUDIO_DURATION = 7200  # 2 hours
 # ============================================
 
 # Llama Maverick API key (OpenAI-compatible)
-OPENAI_API_KEY = config('OPENAI_API_KEY', default='')  # Set in environment
+# IMPORTANT: Set this in your .env file, never commit API keys to version control!
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 # Llama Maverick base URL (OpenAI-compatible endpoint)
 OPENAI_BASE_URL = config('OPENAI_BASE_URL', default='https://openrouter.ai/api/v1')
@@ -254,8 +255,9 @@ OPENAI_MAX_RETRIES = config('OPENAI_MAX_RETRIES', default=3, cast=int)
 # ============================================
 
 # Groq API key for FREE Whisper transcription
+# IMPORTANT: Set this in your .env file, never commit API keys to version control!
 # Get your free API key from: https://console.groq.com/keys
-GROQ_API_KEY = config('GROQ_API_KEY', default='')  # Set in environment
+GROQ_API_KEY = config('GROQ_API_KEY')
 
 # Groq settings
 GROQ_WHISPER_MODEL = config('GROQ_WHISPER_MODEL', default='whisper-large-v3')
