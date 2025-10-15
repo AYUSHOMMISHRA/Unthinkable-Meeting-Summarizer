@@ -13,7 +13,7 @@ Created on: October 13, 2025
 # ============================================
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Meeting, Transcript, Summary, ActionItem
+from .models import Meeting, Transcript, Summary, ActionItem, Tag
 
 
 # ============================================
@@ -73,7 +73,10 @@ class MeetingAdmin(admin.ModelAdmin):
     # Fieldsets for organized edit form
     fieldsets = (
         ('Meeting Information', {
-            'fields': ('title', 'audio_file', 'notes')
+            'fields': ('title', 'audio_file', 'notes', 'is_starred')
+        }),
+        ('Organization', {
+            'fields': ('tags', 'related_meetings')
         }),
         ('Processing Status', {
             'fields': ('status', 'error_message')
@@ -83,6 +86,9 @@ class MeetingAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    # Many-to-many fields configuration
+    filter_horizontal = ['tags', 'related_meetings']
     
     def file_size_display(self, obj):
         """
@@ -339,7 +345,64 @@ class ActionItemAdmin(admin.ModelAdmin):
 
 
 # ============================================
-# 6. REGISTER ALL MODELS WITH ADMIN CLASSES
+# 6. TAG ADMIN CLASS
+# ============================================
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    """
+    Admin interface configuration for Tag model.
+    
+    Features:
+    - List display with name and color preview
+    - Search by tag name
+    - Custom color display with visual preview
+    """
+    
+    # List view configuration
+    list_display = [
+        'name',
+        'color_preview',
+        'created_at',
+        'meeting_count',
+    ]
+    
+    search_fields = ['name']
+    
+    readonly_fields = ['created_at']
+    
+    def color_preview(self, obj):
+        """
+        Display color preview swatch in admin list.
+        
+        Args:
+            obj: Tag instance
+            
+        Returns:
+            str: HTML with color preview
+        """
+        return format_html(
+            '<div style="width: 40px; height: 20px; background-color: {}; border: 1px solid #ddd; border-radius: 3px;"></div>',
+            obj.color
+        )
+    color_preview.short_description = 'Color'
+    
+    def meeting_count(self, obj):
+        """
+        Display count of meetings using this tag.
+        
+        Args:
+            obj: Tag instance
+            
+        Returns:
+            int: Number of meetings with this tag
+        """
+        return obj.meetings.count()
+    meeting_count.short_description = 'Meetings'
+
+
+# ============================================
+# 7. REGISTER ALL MODELS WITH ADMIN CLASSES
 # ============================================
 # Note: Models are registered using @admin.register() decorators above
 # This provides a cleaner syntax than admin.site.register()
@@ -349,3 +412,5 @@ class ActionItemAdmin(admin.ModelAdmin):
 # - Transcript (with TranscriptAdmin)
 # - Summary (with SummaryAdmin)
 # - ActionItem (with ActionItemAdmin)
+# - Tag (with TagAdmin)
+
