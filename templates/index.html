@@ -1,0 +1,1022 @@
+{% extends 'base.html' %}
+
+{% block title %}Meeting Summarizer - Transform Your Meetings{% endblock %}
+
+{% block content %}
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 5rem 0 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .hero-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        min-height: 40px;
+    }
+
+    .typing-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background: #667eea;
+        margin-left: 4px;
+        animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+
+    .cta-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .cta-button:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* Floating Icons Animation */
+    .floating-icons {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .float-icon {
+        position: absolute;
+        font-size: 3rem;
+        opacity: 0.15;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .float-icon:nth-child(1) {
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .float-icon:nth-child(2) {
+        top: 60%;
+        right: 15%;
+        animation-delay: 2s;
+    }
+
+    .float-icon:nth-child(3) {
+        bottom: 20%;
+        left: 20%;
+        animation-delay: 4s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* Upload Zone Styles */
+    .upload-section {
+        padding: 3rem 0;
+    }
+
+    .upload-zone {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 3px dashed transparent;
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                          linear-gradient(135deg, #667eea, #764ba2);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+    }
+
+    [data-theme="dark"] .upload-zone {
+        background-image: linear-gradient(rgba(45, 45, 45, 0.7), rgba(45, 45, 45, 0.7)),
+                          linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .upload-zone:hover {
+        transform: scale(1.02);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+    }
+
+    .upload-zone.dragover {
+        background-image: linear-gradient(rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)),
+                          linear-gradient(135deg, #667eea, #764ba2);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: pulse 2s ease-in-out infinite;
+        display: inline-block;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .upload-text {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 1rem 0;
+    }
+
+    .upload-hint {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .format-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    /* File Preview Card */
+    .file-preview {
+        background: var(--bg-secondary);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        display: none;
+        animation: slideIn 0.4s ease;
+    }
+
+    .file-preview.show {
+        display: block;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .file-icon-large {
+        font-size: 3rem;
+        color: #667eea;
+    }
+
+    .file-details h5 {
+        margin: 0;
+        font-weight: 600;
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .file-meta {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .waveform-container {
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+    }
+
+    .wave-bar {
+        width: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+        animation: wave 1s ease-in-out infinite;
+    }
+
+    .wave-bar:nth-child(1) { height: 20px; animation-delay: 0s; }
+    .wave-bar:nth-child(2) { height: 40px; animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { height: 60px; animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { height: 45px; animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { height: 30px; animation-delay: 0.4s; }
+    .wave-bar:nth-child(6) { height: 50px; animation-delay: 0.5s; }
+    .wave-bar:nth-child(7) { height: 35px; animation-delay: 0.6s; }
+    .wave-bar:nth-child(8) { height: 55px; animation-delay: 0.7s; }
+
+    @keyframes wave {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+    }
+
+    .remove-file-btn {
+        background: #ef4444;
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+    }
+
+    .remove-file-btn:hover {
+        transform: rotate(90deg);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        margin-top: 2rem;
+        display: none;
+    }
+
+    .progress-container.show {
+        display: block;
+        animation: slideIn 0.4s ease;
+    }
+
+    .progress {
+        height: 30px;
+        border-radius: 50px;
+        background: var(--bg-tertiary);
+        overflow: visible;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        transition: width 0.4s ease;
+    }
+
+    /* Process Button */
+    .process-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        margin-top: 2rem;
+        display: none;
+    }
+
+    .process-button.show {
+        display: inline-block;
+    }
+
+    .process-button:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .process-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Features Section */
+    .features-section {
+        padding: 4rem 0;
+        background: var(--bg-secondary);
+        margin-top: 4rem;
+    }
+
+    .feature-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        transition: all 0.4s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px var(--shadow-md);
+        border-color: #667eea;
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: rotateY(360deg);
+    }
+
+    .feature-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .feature-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* Recent Meetings Section */
+    .recent-meetings {
+        padding: 4rem 0;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .view-all-link {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .view-all-link:hover {
+        gap: 1rem;
+        color: #764ba2;
+    }
+
+    .meeting-card {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .meeting-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .meeting-thumbnail {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 3rem;
+        color: #667eea;
+    }
+
+    .meeting-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .meeting-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
+
+    .meeting-date {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 0.35rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    .status-processing {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+    }
+
+    /* Trust Indicators */
+    .trust-section {
+        padding: 3rem 0;
+        background: var(--bg-secondary);
+        margin-top: 3rem;
+    }
+
+    .trust-badges {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .trust-badge {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .trust-badge:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px var(--shadow-md);
+    }
+
+    .trust-icon {
+        font-size: 2rem;
+        color: #667eea;
+    }
+
+    .trust-text {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .upload-zone {
+            padding: 3rem 1.5rem;
+        }
+
+        .file-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .trust-badges {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="floating-icons">
+        <i class="bi bi-mic-fill float-icon"></i>
+        <i class="bi bi-brain float-icon"></i>
+        <i class="bi bi-file-earmark-text float-icon"></i>
+    </div>
+    
+    <div class="container text-center">
+        <h1 class="hero-title">
+            Transform Your Meetings into<br>
+            <span class="gradient-text">Actionable Insights</span>
+        </h1>
+        <p class="hero-subtitle">
+            <span id="typingText"></span><span class="typing-cursor"></span>
+        </p>
+        <a href="#upload" class="cta-button">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started
+        </a>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section class="upload-section" id="upload">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="fileInput" accept=".mp3,.wav,.m4a,.ogg,.flac" style="display: none;">
+                    <i class="bi bi-cloud-upload upload-icon"></i>
+                    <p class="upload-text">Drag audio file here or click to browse</p>
+                    <p class="upload-hint">Upload your meeting recording to get started</p>
+                    <span class="format-badge">MP3 | WAV | M4A | OGG | FLAC</span>
+                </div>
+
+                <!-- File Preview Card -->
+                <div class="file-preview" id="filePreview">
+                    <div class="file-info">
+                        <i class="bi bi-file-earmark-music file-icon-large"></i>
+                        <div class="file-details">
+                            <h5 id="fileName">meeting-recording.mp3</h5>
+                            <div class="file-meta">
+                                <span><i class="bi bi-hdd me-1"></i><span id="fileSize">0 MB</span></span>
+                                <span><i class="bi bi-clock me-1"></i><span id="fileDuration">0:00</span></span>
+                            </div>
+                        </div>
+                        <button class="remove-file-btn" id="removeFileBtn">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Waveform Visualization -->
+                    <div class="waveform-container">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <!-- Process Button -->
+                <div class="text-center">
+                    <button class="process-button" id="processBtn">
+                        <i class="bi bi-stars me-2"></i>Process Meeting
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Powerful Features</h2>
+            <p class="text-secondary">Everything you need to manage your meetings efficiently</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-soundwave"></i>
+                    </div>
+                    <h3 class="feature-title">Accurate Transcription</h3>
+                    <p class="feature-description">
+                        State-of-the-art AI transcription powered by OpenAI Whisper ensures 
+                        industry-leading accuracy for all your meeting recordings.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <h3 class="feature-title">AI-Powered Summary</h3>
+                    <p class="feature-description">
+                        Advanced language models generate concise summaries highlighting 
+                        key decisions, discussions, and important takeaways automatically.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <h3 class="feature-title">Action Items Extraction</h3>
+                    <p class="feature-description">
+                        Intelligent extraction of tasks, assignments, and deadlines so 
+                        you never miss a follow-up or important action item.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Meetings Section -->
+<section class="recent-meetings">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Recent Meetings</h2>
+            <a href="/meetings" class="view-all-link">
+                View All <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="meeting-card">
+                    <div class="meeting-thumbnail">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4 class="meeting-title">Q4 Planning Meeting</h4>
+                    <p class="text-secondary mb-0">Discussed strategic initiatives and goals for the upcoming quarter...</p>
+                    <div class="meeting-meta">
+                        <span class="meeting-date">
+                            <i class="bi bi-calendar3 me-1"></i>Oct 10, 2025
+                        </span>
+                        <span class="status-badge status-completed">Completed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="meeting-card">
+                    <div class="meeting-thumbnail">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <h4 class="meeting-title">Product Team Sync</h4>
+                    <p class="text-secondary mb-0">Weekly sync on product roadmap, feature priorities, and user feedback...</p>
+                    <div class="meeting-meta">
+                        <span class="meeting-date">
+                            <i class="bi bi-calendar3 me-1"></i>Oct 12, 2025
+                        </span>
+                        <span class="status-badge status-completed">Completed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="meeting-card">
+                    <div class="meeting-thumbnail">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4 class="meeting-title">Marketing Campaign Review</h4>
+                    <p class="text-secondary mb-0">Analyzing performance metrics and planning next campaign strategy...</p>
+                    <div class="meeting-meta">
+                        <span class="meeting-date">
+                            <i class="bi bi-calendar3 me-1"></i>Oct 13, 2025
+                        </span>
+                        <span class="status-badge status-processing">Processing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Indicators Section -->
+<section class="trust-section">
+    <div class="container">
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <i class="bi bi-shield-check trust-icon"></i>
+                <span class="trust-text">Powered by OpenAI</span>
+            </div>
+            
+            <div class="trust-badge">
+                <i class="bi bi-lock-fill trust-icon"></i>
+                <span class="trust-text">Enterprise-grade Security</span>
+            </div>
+            
+            <div class="trust-badge">
+                <i class="bi bi-globe trust-icon"></i>
+                <span class="trust-text">GDPR Compliant</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Typing animation for hero subtitle
+    const phrases = [
+        "AI-powered transcription in seconds",
+        "Automatic action item extraction",
+        "Smart meeting summaries",
+        "Never miss important decisions"
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typingSpeed = 100;
+    const deletingSpeed = 50;
+    const pauseTime = 2000;
+
+    function typeText() {
+        const typingElement = document.getElementById('typingText');
+        const currentPhrase = phrases[phraseIndex];
+
+        if (isDeleting) {
+            typingElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+        } else {
+            typingElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+        }
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            setTimeout(() => { isDeleting = true; }, pauseTime);
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+        }
+
+        const speed = isDeleting ? deletingSpeed : typingSpeed;
+        setTimeout(typeText, speed);
+    }
+
+    // Start typing animation when page loads
+    document.addEventListener('DOMContentLoaded', typeText);
+
+    // File upload functionality
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const processBtn = document.getElementById('processBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    let selectedFile = null;
+
+    // Click to upload
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Handle file selection
+    function handleFile(file) {
+        selectedFile = file;
+        
+        // Update file info
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        
+        // Get audio duration
+        const audio = new Audio(URL.createObjectURL(file));
+        audio.addEventListener('loadedmetadata', () => {
+            const minutes = Math.floor(audio.duration / 60);
+            const seconds = Math.floor(audio.duration % 60);
+            document.getElementById('fileDuration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        });
+
+        // Show preview and process button
+        filePreview.classList.add('show');
+        processBtn.classList.add('show');
+    }
+
+    // Remove file
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedFile = null;
+        fileInput.value = '';
+        filePreview.classList.remove('show');
+        processBtn.classList.remove('show');
+        progressContainer.classList.remove('show');
+    });
+
+    // Process button click
+    processBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        processBtn.disabled = true;
+        processBtn.innerHTML = '<span class="spinner"></span>Processing...';
+        progressContainer.classList.add('show');
+
+        // Simulate upload progress
+        let progress = 0;
+        const progressBar = document.getElementById('progressBar');
+        
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 100) progress = 100;
+            
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                
+                // Create FormData and submit
+                const formData = new FormData();
+                formData.append('audio_file', selectedFile);
+                
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.meeting_id) {
+                        window.location.href = `/meeting/${data.meeting_id}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during upload. Please try again.');
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<i class="bi bi-stars me-2"></i>Process Meeting';
+                    progressContainer.classList.remove('show');
+                });
+            }
+        }, 200);
+    });
+
+    // Smooth scroll for CTA button
+    document.querySelector('.cta-button').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('upload').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Add active class to current nav link
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath || 
+            (currentPath === '/' && link.getAttribute('href') === '/')) {
+            link.classList.add('active');
+        }
+    });
+</script>
+{% endblock %}
