@@ -1,0 +1,575 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Meeting Summarizer</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+    /* Theme Variables */
+    [data-theme="light"] {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --border-color: rgba(102, 126, 234, 0.2);
+        --shadow: rgba(0, 0, 0, 0.1);
+        --feature-card-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        --navbar-bg: rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --card-bg: rgba(30, 41, 59, 0.95);
+        --border-color: rgba(102, 126, 234, 0.3);
+        --shadow: rgba(0, 0, 0, 0.5);
+        --feature-card-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --navbar-bg: rgba(15, 23, 42, 0.9);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: var(--bg-gradient);
+        min-height: 100vh;
+        padding: 0;
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Navigation Header */
+    .navbar {
+        background: var(--navbar-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 6px var(--shadow);
+        transition: all 0.3s ease;
+    }
+
+    .navbar-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        transition: transform 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: translateY(-2px);
+    }
+
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+    }
+
+    .navbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        list-style: none;
+    }
+
+    .nav-link {
+        color: var(--text-primary);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+        background: var(--bg-secondary);
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .theme-toggle {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--text-primary);
+        margin-left: 1rem;
+    }
+
+    .theme-toggle:hover {
+        transform: rotate(15deg) scale(1.1);
+        background: var(--bg-primary);
+        box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .theme-toggle i {
+        font-size: 1.2rem;
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: 2rem;
+    }
+
+    .about-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .about-header {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        box-shadow: 0 20px 60px var(--shadow);
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+        border: 1px solid var(--border-color);
+    }
+
+    .about-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .about-header .tagline {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+    }
+
+    .about-content {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 20px 60px var(--shadow);
+        animation: fadeInUp 0.6s ease-out 0.2s both;
+        border: 1px solid var(--border-color);
+    }
+
+    .about-section {
+        margin-bottom: 3rem;
+    }
+
+    .about-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .about-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .about-section h2 i {
+        color: #667eea;
+        font-size: 1.5rem;
+    }
+
+    .about-section p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .feature-card {
+        background: var(--feature-card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .feature-card i {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .feature-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .tech-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 25px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .tech-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .tech-badge i {
+        font-size: 1.1rem;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .navbar-container {
+            padding: 0 1rem;
+        }
+
+        .navbar-nav {
+            display: none;
+        }
+
+        .main-content {
+            padding: 1rem;
+        }
+
+        .about-header {
+            padding: 2rem;
+        }
+
+        .about-header h1 {
+            font-size: 2rem;
+        }
+
+        .about-header .tagline {
+            font-size: 1rem;
+        }
+
+        .about-content {
+            padding: 2rem;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Navigation Header -->
+<nav class="navbar">
+    <div class="navbar-container">
+        <a href="{% url 'meetings:index' %}" class="navbar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-mic-fill"></i>
+            </div>
+            <span>Meeting Summarizer</span>
+        </a>
+        
+        <ul class="navbar-nav">
+            <li><a href="{% url 'meetings:index' %}" class="nav-link"><i class="bi bi-house-door"></i> Home</a></li>
+            <li><a href="{% url 'meetings:upload' %}" class="nav-link"><i class="bi bi-cloud-upload"></i> Upload</a></li>
+            <li><a href="{% url 'meetings:list' %}" class="nav-link"><i class="bi bi-calendar3"></i> Meetings</a></li>
+            <li><a href="{% url 'meetings:about' %}" class="nav-link active"><i class="bi bi-info-circle"></i> About</a></li>
+        </ul>
+        
+        <div class="theme-toggle" id="themeToggle" role="button" aria-label="Toggle theme">
+            <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Header -->
+    <div class="about-header">
+        <h1>Meeting Summarizer</h1>
+        <p class="tagline">Transform your meetings into actionable insights with AI</p>
+    </div>
+
+    <!-- Content -->
+    <div class="about-content">
+        <!-- What is it -->
+        <div class="about-section">
+            <h2><i class="bi bi-info-circle"></i> What is Meeting Summarizer?</h2>
+            <p>
+                Meeting Summarizer is a powerful AI-driven application that automatically transcribes your meeting audio files 
+                and generates comprehensive summaries, extracts key decisions, identifies action items, and highlights important topics. 
+                Say goodbye to manual note-taking and never miss important meeting details again.
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="about-section">
+            <h2><i class="bi bi-stars"></i> Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="bi bi-mic"></i>
+                    <h3>Audio Transcription</h3>
+                    <p>Powered by Groq Whisper AI for accurate speech-to-text conversion</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-robot"></i>
+                    <h3>AI Summarization</h3>
+                    <p>LLaMA 3.1 generates executive summaries and extracts insights</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-list-check"></i>
+                    <h3>Action Items</h3>
+                    <p>Automatically identifies tasks with assignees and deadlines</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-people"></i>
+                    <h3>Participant Tracking</h3>
+                    <p>Detects and lists meeting participants automatically</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-bookmark"></i>
+                    <h3>Smart Organization</h3>
+                    <p>Search, filter, and star your favorite meetings</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-lightning"></i>
+                    <h3>Real-time Processing</h3>
+                    <p>Watch your meeting being processed with live status updates</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it Works -->
+        <div class="about-section">
+            <h2><i class="bi bi-gear"></i> How It Works</h2>
+            <p>
+                <strong>1. Upload:</strong> Simply upload your meeting audio file (MP3, WAV, M4A, OGG, or FLAC).<br>
+                <strong>2. Process:</strong> Our AI automatically transcribes and analyzes your meeting.<br>
+                <strong>3. Review:</strong> Access your transcript, summary, key decisions, and action items instantly.<br>
+                <strong>4. Organize:</strong> Search, filter, sort, and star meetings for easy access later.
+            </p>
+        </div>
+
+        <!-- Technology -->
+        <div class="about-section">
+            <h2><i class="bi bi-cpu"></i> Built With</h2>
+            <div class="tech-stack">
+                <div class="tech-badge">
+                    <i class="bi bi-filetype-py"></i>
+                    Python 3.11
+                </div>
+                <div class="tech-badge">
+                    <i class="bi bi-bootstrap"></i>
+                    Django 5.2
+                </div>
+                <div class="tech-badge">
+                    <i class="bi bi-robot"></i>
+                    Groq Whisper
+                </div>
+                <div class="tech-badge">
+                    <i class="bi bi-stars"></i>
+                    LLaMA 3.1
+                </div>
+                <div class="tech-badge">
+                    <i class="bi bi-database"></i>
+                    SQLite
+                </div>
+                <div class="tech-badge">
+                    <i class="bi bi-filetype-html"></i>
+                    HTML/CSS/JS
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="about-section">
+            <div class="cta-buttons">
+                <a href="{% url 'meetings:index' %}" class="btn btn-primary">
+                    <i class="bi bi-upload"></i>
+                    Upload Meeting
+                </a>
+                <a href="{% url 'meetings:list' %}" class="btn btn-secondary">
+                    <i class="bi bi-collection"></i>
+                    View All Meetings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Theme Toggle Script -->
+<script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlElement = document.documentElement;
+
+    // Check for saved theme preference or default to 'light'
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        htmlElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
+
+    function updateThemeIcon(theme) {
+        if (theme === 'dark') {
+            themeIcon.className = 'bi bi-sun-fill';
+        } else {
+            themeIcon.className = 'bi bi-moon-stars-fill';
+        }
+    }
+</script>
+
+</body>
+</html>
