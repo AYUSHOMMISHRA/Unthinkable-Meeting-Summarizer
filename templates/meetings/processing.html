@@ -590,20 +590,34 @@
             progressBar.style.width = overallProgress + '%';
             progressPercentage.textContent = Math.round(overallProgress) + '%';
 
-            // Update steps
-            if (overallProgress >= 25 && overallProgress < 50 && currentStepIndex === 1) {
-                // Transcribing
-            } else if (overallProgress >= 50 && overallProgress < 75 && currentStepIndex === 1) {
-                // Move to summarizing
-                completeStep('step-transcribe');
-                activateStep('step-summarize');
-                currentStepIndex = 2;
-            } else if (overallProgress >= 75 && overallProgress < 100 && currentStepIndex === 2) {
-                // Move to extracting
-                completeStep('step-summarize');
-                activateStep('step-extract');
-                currentStepIndex = 3;
-            } else if (overallProgress >= 100) {
+            // Update steps based on progress percentage
+            // Step 1: Upload (0-25%) - Already completed
+            
+            // Step 2: Transcribing (25-50%)
+            if (overallProgress >= 25 && overallProgress < 50) {
+                if (currentStepIndex !== 1) {
+                    activateStep('step-transcribe');
+                    currentStepIndex = 1;
+                }
+            } 
+            // Step 3: Summarizing (50-75%)
+            else if (overallProgress >= 50 && overallProgress < 75) {
+                if (currentStepIndex !== 2) {
+                    completeStep('step-transcribe');
+                    activateStep('step-summarize');
+                    currentStepIndex = 2;
+                }
+            } 
+            // Step 4: Extracting (75-100%)
+            else if (overallProgress >= 75 && overallProgress < 100) {
+                if (currentStepIndex !== 3) {
+                    completeStep('step-summarize');
+                    activateStep('step-extract');
+                    currentStepIndex = 3;
+                }
+            } 
+            // Complete
+            else if (overallProgress >= 100) {
                 completeStep('step-extract');
                 // Redirect to results page
                 setTimeout(() => {
@@ -652,21 +666,56 @@
                 const data = await response.json();
                 
                 // Update based on server response
-                if (data.status === 'transcribing') {
-                    overallProgress = data.progress || 25;
-                } else if (data.status === 'summarizing') {
-                    completeStep('step-transcribe');
-                    activateStep('step-summarize');
-                    overallProgress = 50 + (data.progress || 0) * 0.25;
-                    currentStepIndex = 2;
-                } else if (data.status === 'extracting') {
-                    completeStep('step-summarize');
-                    activateStep('step-extract');
-                    overallProgress = 75 + (data.progress || 0) * 0.25;
-                    currentStepIndex = 3;
+                // Backend uses: pending, processing, completed, failed
+                // We simulate sub-steps based on elapsed time and progress
+                
+                if (data.status === 'pending' || data.status === 'processing') {
+                    // Simulate progress through all 4 steps
+                    elapsedTime += 2; // Add 2 seconds per poll
+                    
+                    // Step 1: Upload (0-25%) - Already complete
+                    
+                    // Step 2: Transcribing (25-50%)
+                    if (overallProgress < 50) {
+                        overallProgress = Math.min(25 + (elapsedTime / 60) * 25, 49);
+                        if (currentStepIndex !== 1) {
+                            activateStep('step-transcribe');
+                            currentStepIndex = 1;
+                        }
+                    }
+                    // Step 3: Summarizing (50-75%)
+                    else if (overallProgress >= 50 && overallProgress < 75) {
+                        if (currentStepIndex !== 2) {
+                            completeStep('step-transcribe');
+                            activateStep('step-summarize');
+                            currentStepIndex = 2;
+                        }
+                        overallProgress = Math.min(50 + (elapsedTime / 90) * 25, 74);
+                    }
+                    // Step 4: Extracting (75-99%)
+                    else if (overallProgress >= 75 && overallProgress < 100) {
+                        if (currentStepIndex !== 3) {
+                            completeStep('step-summarize');
+                            activateStep('step-extract');
+                            currentStepIndex = 3;
+                        }
+                        overallProgress = Math.min(75 + (elapsedTime / 120) * 24, 99);
+                    }
+                    
                 } else if (data.status === 'completed') {
+                    // Complete all remaining steps
                     overallProgress = 100;
-                    completeStep('step-extract');
+                    
+                    if (!document.getElementById('step-transcribe').classList.contains('completed')) {
+                        completeStep('step-transcribe');
+                    }
+                    if (!document.getElementById('step-summarize').classList.contains('completed')) {
+                        completeStep('step-summarize');
+                    }
+                    if (!document.getElementById('step-extract').classList.contains('completed')) {
+                        completeStep('step-extract');
+                    }
+                    
                     // Show completion message
                     document.getElementById('progressPercentage').textContent = '100%';
                     document.getElementById('progressBar').style.width = '100%';
@@ -676,6 +725,12 @@
                     setTimeout(() => {
                         window.location.href = `/meeting/${meetingId}/?fromProcessing=true`;
                     }, 1500);
+                } else if (data.status === 'failed') {
+                    // Handle failed status
+                    document.getElementById('timeRemaining').textContent = 'Processing failed';
+                    setTimeout(() => {
+                        window.location.href = `/meeting/${meetingId}/`;
+                    }, 2000);
                 }
 
                 document.getElementById('progressBar').style.width = overallProgress + '%';
