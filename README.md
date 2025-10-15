@@ -10,7 +10,7 @@
 
 **Transform your meetings into actionable insights with AI-powered transcription and summarization**
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Features](#-features)  • [Contributing](#-contributing)
 
 </div>
 
