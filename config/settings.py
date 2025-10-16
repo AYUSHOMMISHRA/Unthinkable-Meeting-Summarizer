@@ -48,7 +48,8 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 # 7. ALLOWED HOSTS FOR DEVELOPMENT
 # ============================================
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+# Get allowed hosts from environment variable or use defaults
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,unthinkable-meeting-summarizer-production.up.railway.app,*.up.railway.app').split(',')
 
 
 # ============================================
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files efficiently
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -189,6 +191,9 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
+# WhiteNoise configuration for efficient static file serving
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # ============================================
 # 5. MEDIA FILES CONFIGURATION
@@ -236,7 +241,6 @@ MAX_AUDIO_DURATION = 7200  # 2 hours
 # ============================================
 
 # Llama Maverick API key (OpenAI-compatible)
-# IMPORTANT: Set this in your .env file, never commit API keys to version control!
 OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 # Llama Maverick base URL (OpenAI-compatible endpoint)
@@ -471,6 +475,28 @@ if DEBUG:
     # Django Debug Toolbar (optional - install: pip install django-debug-toolbar)
     # INSTALLED_APPS += ['debug_toolbar']
     # MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+
+
+# ============================================
+# PRODUCTION SECURITY SETTINGS
+# ============================================
+
+# Security settings for production
+if not DEBUG:
+    # HTTPS settings
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # HSTS settings
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Other security settings
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 
 # ============================================
