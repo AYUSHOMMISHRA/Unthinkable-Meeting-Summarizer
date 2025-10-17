@@ -375,7 +375,11 @@ def meeting_detail(request, meeting_id):
         tags = meeting.tags.all()
         
         # Get related meetings (limit to 3 most recent)
-        related_meetings = meeting.related_meetings.filter(status='completed').order_by('-created_at')[:3]
+        try:
+            related_meetings = meeting.related_meetings.filter(status='completed').order_by('-created_at')[:3]
+        except Exception as e:
+            logger.warning(f"Error fetching related meetings: {str(e)}")
+            related_meetings = Meeting.objects.none()
         
         context = {
             'meeting': meeting,
@@ -393,11 +397,33 @@ def meeting_detail(request, meeting_id):
         
         return render(request, 'meetings/detail.html', context)
     
-    except Exception as e:
-        logger.error(f"Error in meeting_detail view for meeting {meeting_id}: {str(e)}")
-        logger.exception(e)  # This will log the full traceback
-        messages.error(request, f'Error loading meeting details: {str(e)}')
+    except Meeting.DoesNotExist:
+        logger.error(f"Meeting {meeting_id} not found")
+        messages.error(request, 'Meeting not found.')
         return redirect('meetings:list')
+    except Exception as e:
+        logger.error(f"Unexpected error in meeting_detail view for meeting {meeting_id}: {str(e)}")
+        logger.exception(e)  # This will log the full traceback
+        # Don't redirect - show the error
+        messages.error(request, f'Error loading meeting details. Please try again.')
+        # Try to render with minimal context
+        try:
+            meeting = Meeting.objects.get(id=meeting_id)
+            return render(request, 'meetings/detail.html', {
+                'meeting': meeting,
+                'transcript': None,
+                'summary': None,
+                'action_items': [],
+                'tags': [],
+                'related_meetings': [],
+                'has_transcript': False,
+                'has_summary': False,
+                'has_action_items': False,
+                'has_tags': False,
+                'has_related_meetings': False,
+            })
+        except:
+            return redirect('meetings:list')
 
 
 # ============================================
