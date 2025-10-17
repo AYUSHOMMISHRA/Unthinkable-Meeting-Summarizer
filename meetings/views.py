@@ -329,6 +329,7 @@ def meeting_detail(request, meeting_id):
                 request,
                 'Meeting is still being processed. Please wait...'
             )
+            logger.info(f"Redirecting meeting {meeting_id} - status is processing")
             return redirect('meetings:processing', meeting_id=meeting.id)
         elif meeting.status == 'pending':
             # Not started yet
@@ -336,6 +337,7 @@ def meeting_detail(request, meeting_id):
                 request,
                 'Meeting processing has not started yet.'
             )
+            logger.info(f"Redirecting meeting {meeting_id} - status is pending")
             return redirect('meetings:processing', meeting_id=meeting.id)
         elif meeting.status == 'failed':
             # Failed processing - show what data we have with a warning
@@ -343,7 +345,9 @@ def meeting_detail(request, meeting_id):
                 request,
                 f'Meeting processing failed: {meeting.error_message or "Unknown error"}. Showing available data.'
             )
+            logger.info(f"Meeting {meeting_id} failed, showing available data")
         
+        logger.info(f"Step 1: Fetching transcript for meeting {meeting_id}")
         # Get related transcript (if exists)
         transcript = None
         try:
@@ -355,6 +359,7 @@ def meeting_detail(request, meeting_id):
         except Exception as e:
             logger.error(f"Error fetching transcript for meeting {meeting_id}: {str(e)}")
         
+        logger.info(f"Step 2: Fetching summary for meeting {meeting_id}")
         # Get related summary (if exists)
         summary = None
         try:
@@ -367,20 +372,26 @@ def meeting_detail(request, meeting_id):
         except Exception as e:
             logger.error(f"Error fetching summary for meeting {meeting_id}: {str(e)}")
         
+        logger.info(f"Step 3: Fetching action items for meeting {meeting_id}")
         # Get all action items ordered by priority
         action_items = meeting.action_items.all().order_by('-priority', 'deadline')
         logger.info(f"Action items count: {action_items.count()}")
         
+        logger.info(f"Step 4: Fetching tags for meeting {meeting_id}")
         # Get tags for this meeting
         tags = meeting.tags.all()
+        logger.info(f"Tags count: {tags.count()}")
         
+        logger.info(f"Step 5: Fetching related meetings for meeting {meeting_id}")
         # Get related meetings (limit to 3 most recent)
         try:
             related_meetings = meeting.related_meetings.filter(status='completed').order_by('-created_at')[:3]
+            logger.info(f"Related meetings count: {related_meetings.count()}")
         except Exception as e:
             logger.warning(f"Error fetching related meetings: {str(e)}")
             related_meetings = Meeting.objects.none()
         
+        logger.info(f"Step 6: Building context for meeting {meeting_id}")
         context = {
             'meeting': meeting,
             'transcript': transcript,
@@ -395,6 +406,7 @@ def meeting_detail(request, meeting_id):
             'has_related_meetings': related_meetings.exists(),
         }
         
+        logger.info(f"Step 7: Rendering template for meeting {meeting_id}")
         return render(request, 'meetings/detail.html', context)
     
     except Meeting.DoesNotExist:
@@ -403,6 +415,7 @@ def meeting_detail(request, meeting_id):
         return redirect('meetings:list')
     except Exception as e:
         logger.error(f"Unexpected error in meeting_detail view for meeting {meeting_id}: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
         logger.exception(e)  # This will log the full traceback
         # Don't redirect - show the error
         messages.error(request, f'Error loading meeting details. Please try again.')
