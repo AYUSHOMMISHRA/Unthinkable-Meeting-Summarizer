@@ -10,6 +10,7 @@ Created on: October 13, 2025
 from django.urls import path
 from . import views
 from .debug_views import debug_meeting
+from .simple_test_view import simple_meeting_test
 
 # App namespace for URL reversing
 app_name = 'meetings'
@@ -45,4 +46,7 @@ urlpatterns = [
     
     # Debug endpoint - check meeting data
     path('debug/meeting/<int:meeting_id>/', debug_meeting, name='debug_meeting'),
+    
+    # Simple test endpoint - verify routing
+    path('test/meeting/<int:meeting_id>/', simple_meeting_test, name='simple_test'),
 ]
