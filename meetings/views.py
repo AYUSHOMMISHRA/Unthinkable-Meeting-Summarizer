@@ -320,6 +320,8 @@ def meeting_detail(request, meeting_id):
     try:
         meeting = get_object_or_404(Meeting, id=meeting_id)
         
+        logger.info(f"Loading meeting detail for meeting ID: {meeting_id}, status: {meeting.status}")
+        
         # Check if processing is complete
         if meeting.status != 'completed':
             messages.warning(
@@ -332,16 +334,28 @@ def meeting_detail(request, meeting_id):
         transcript = None
         try:
             transcript = meeting.transcripts.first()
+            logger.info(f"Transcript found: {transcript is not None}")
         except Transcript.DoesNotExist:
+            logger.warning(f"No transcript found for meeting {meeting_id}")
             pass
+        except Exception as e:
+            logger.error(f"Error fetching transcript for meeting {meeting_id}: {str(e)}")
         
         # Get related summary (if exists)
         summary = None
-        if hasattr(meeting, 'summary') and meeting.summary:
-            summary = meeting.summary
+        try:
+            if hasattr(meeting, 'summary'):
+                summary = meeting.summary
+                logger.info(f"Summary found: {summary is not None}")
+        except Summary.DoesNotExist:
+            logger.warning(f"No summary found for meeting {meeting_id}")
+            pass
+        except Exception as e:
+            logger.error(f"Error fetching summary for meeting {meeting_id}: {str(e)}")
         
         # Get all action items ordered by priority
         action_items = meeting.action_items.all().order_by('-priority', 'deadline')
+        logger.info(f"Action items count: {action_items.count()}")
         
         # Get tags for this meeting
         tags = meeting.tags.all()
