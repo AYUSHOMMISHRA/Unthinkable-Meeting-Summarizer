@@ -647,7 +647,7 @@
     // Poll server for actual progress (if API endpoint exists)
     async function pollProgress() {
         try {
-            const response = await fetch(`/api/meeting/${meetingId}/status`);
+            const response = await fetch(`/api/status/${meetingId}/`);
             if (response.ok) {
                 const data = await response.json();
                 
