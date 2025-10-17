@@ -322,13 +322,23 @@ def meeting_detail(request, meeting_id):
         
         logger.info(f"Loading meeting detail for meeting ID: {meeting_id}, status: {meeting.status}")
         
+        # Allow force viewing even if not completed (for debugging or failed meetings)
+        force_view = request.GET.get('force', 'false').lower() == 'true'
+        
         # Check if processing is complete
-        if meeting.status != 'completed':
+        if meeting.status not in ['completed', 'failed'] and not force_view:
             messages.warning(
                 request,
                 'Meeting is still being processed. Please wait...'
             )
             return redirect('meetings:processing', meeting_id=meeting.id)
+        
+        # Show warning if meeting failed but allow viewing
+        if meeting.status == 'failed':
+            messages.warning(
+                request,
+                f'This meeting failed to process: {meeting.error_message or "Unknown error"}. Showing partial data if available.'
+            )
         
         # Get related transcript (if exists)
         transcript = None
