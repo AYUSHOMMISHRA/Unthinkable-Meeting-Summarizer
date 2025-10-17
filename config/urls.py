@@ -8,10 +8,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from meetings.health_check import health_check
 
 urlpatterns = [
     # Admin panel
     path('admin/', admin.site.urls),
+    
+    # Health check endpoint
+    path('health/', health_check, name='health_check'),
     
     # Meeting Summarizer app URLs (root level)
     path('', include('meetings.urls')),
