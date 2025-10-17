@@ -1805,8 +1805,8 @@
                         <div class="metadata-row">
                             <span class="metadata-label">File Size</span>
                             <span class="metadata-value">
-                                {% if meeting.audio_file.size %}
-                                    {{ meeting.audio_file.size|format_filesize }}
+                                {% if meeting.file_size %}
+                                    {{ meeting.file_size|format_filesize }}
                                 {% else %}
                                     -
                                 {% endif %}
@@ -1814,7 +1814,13 @@
                         </div>
                         <div class="metadata-row">
                             <span class="metadata-label">Format</span>
-                            <span class="metadata-value">{{ meeting.audio_file.name|slice:"-3:"|upper|default:"MP3" }}</span>
+                            <span class="metadata-value">
+                                {% if meeting.audio_file and meeting.audio_file.name %}
+                                    {{ meeting.audio_file.name|slice:"-3:"|upper }}
+                                {% else %}
+                                    MP3
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="metadata-row">
                             <span class="metadata-label">Word Count</span>
