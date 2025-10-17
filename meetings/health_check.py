@@ -28,7 +28,8 @@ def health_check(request):
         'status': 'healthy',
         'checks': {},
         'warnings': [],
-        'environment': 'production' if not settings.DEBUG else 'development'
+        'environment': 'production' if not settings.DEBUG else 'development',
+        'deployment_id': 'v1.0.2-detail-fix'
     }
     
     # Check GROQ_API_KEY
