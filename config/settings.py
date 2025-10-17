@@ -421,6 +421,12 @@ os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 # SECURITY SETTINGS FOR PRODUCTION
 # ============================================
 
+# CSRF trusted origins for Railway deployment
+CSRF_TRUSTED_ORIGINS = [
+    'https://unthinkable-meeting-summarizer-production.up.railway.app',
+    'https://*.up.railway.app',
+]
+
 # Uncomment these in production
 if not DEBUG:
     # HTTPS/SSL
